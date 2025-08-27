@@ -6,7 +6,7 @@
 
 ## 機能
 
-- **AI連携**: Vertex AI (Gemini Pro)を使用したゲーム自動生成
+- **AI連携**: Vertex AI (Gemini)を使用したゲーム自動生成
 - **タイマー機能**: 3分間の制限時間
 
 and more...
