@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIゲーム生成チャレンジ - AIと共創</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AIゲーム生成チャレンジ 🎮</h1>
+            <p class="subtitle">みんなでAIと協力してゲームを作ろう！</p>
+        </header>
+
+        <div class="game-info">
+            <div class="theme-section">
+                <h2>今回のお題</h2>
+                <div id="current-theme" class="theme-display">
+                    「5秒で遊べるミニゲーム」を作ろう！
+                </div>
+            </div>
+            
+            <div class="timer-section">
+                <div class="timer" id="timer">
+                    <span class="timer-label">残り時間</span>
+                    <span class="timer-display">05:00</span>
+                </div>
+                <button id="start-game" class="btn btn-primary">チャレンジ開始</button>
+            </div>
+        </div>
+
+        <div class="main-container">
+            <div class="control-panel">
+                <h3>ゲーム開発チーム</h3>
+                <div class="participants-info">
+                    参加者数: <span id="participant-count">0</span>人 | 
+                    現在: <span id="current-player">待機中...</span>
+                </div>
+                
+                <div class="prompt-section">
+                    <textarea 
+                        id="prompt-input" 
+                        class="prompt-input"
+                        placeholder="具体的な指示を入力（例：「赤いボタンを追加」「音を鳴らす」「スピードを上げる」）"
+                        rows="3"
+                    ></textarea>
+                    <div class="input-controls">
+                        <button id="submit-prompt" class="btn btn-submit">送信</button>
+                        <button id="add-participant" class="btn btn-add">参加者追加</button>
+                    </div>
+                </div>
+
+                <div class="prompt-history">
+                    <details>
+                        <summary>プロンプト履歴</summary>
+                        <div id="history" class="history-list">
+                            <p class="empty-message">まだプロンプトがありません</p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <div class="result-section">
+                <h3>生成されたゲーム</h3>
+                <div id="result" class="result-display">
+                    <div class="waiting-message">
+                        <div class="waiting-icon">🎮</div>
+                        <p>プロンプトを入力してAIにゲーム作成を依頼しましょう</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="showcase-section" id="showcase-section" style="display: none;">
+            <h2>🏆 完成したゲームを発表！</h2>
+            <p>制作時間終了！みんなで作ったゲームをプレイしてみましょう！</p>
+            <div class="final-result" id="final-result"></div>
+            <div class="creation-process">
+                <h3>制作過程</h3>
+                <div id="creation-recipe"></div>
+            </div>
+            <div class="controls">
+                <button class="btn btn-primary" id="new-challenge">新しいチャレンジ</button>
+                <button class="btn btn-secondary" id="share-game">ゲームをシェア</button>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <span>プロンプト: <strong id="total-prompts">0</strong></span>
+            <span>参加者: <strong id="total-participants">0</strong></span>
+            <span>ゲーム: <strong id="games-created">0</strong></span>
+        </div>
+
+        <footer>
+            <p>Commune</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
