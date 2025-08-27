@@ -1,7 +1,7 @@
 {
   "name": "ai-pair-programming-battle",
   "version": "1.0.0",
-  "description": "AIペアプログラミング対戦 - AIと共創するゲーム開発体験",
+  "description": "AIと共創するゲーム開発",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

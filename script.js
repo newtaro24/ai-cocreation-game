@@ -1,7 +1,7 @@
 class AIGameChallenge {
     constructor() {
-        this.gameState = 'waiting'; // waiting, playing, finished
-        this.timeRemaining = 300; // 5分間
+        this.gameState = 'waiting';
+        this.timeRemaining = 300;
         this.timerInterval = null;
         this.currentTheme = '「5秒で遊べるミニゲーム」を作ろう！';
         this.participants = [];
@@ -40,13 +40,6 @@ class AIGameChallenge {
                 this.submitPrompt();
             }
         });
-        
-        // 参加者名入力エンターキー対応
-        document.addEventListener('keydown', (e) => {
-            if (e.target.classList.contains('participant-name-input') && e.key === 'Enter') {
-                this.confirmParticipantName(e.target);
-            }
-        });
     }
     
     startChallenge() {
@@ -58,7 +51,7 @@ class AIGameChallenge {
         }
         
         this.gameState = 'playing';
-        this.timeRemaining = 300; // 5分間
+        this.timeRemaining = 300;
         this.selectRandomTheme();
         
         document.getElementById('start-game').disabled = true;
@@ -151,8 +144,6 @@ class AIGameChallenge {
         this.generateGameResult(prompt);
         
         promptInput.value = '';
-        
-        // 次の参加者に切り替え
         this.currentParticipantIndex = (this.currentParticipantIndex + 1) % this.participants.length;
         this.updateCurrentParticipant();
         
@@ -165,7 +156,6 @@ class AIGameChallenge {
     addToHistory(promptData) {
         const historyContainer = document.getElementById('history');
         
-        // 空のメッセージを削除
         const emptyMessage = historyContainer.querySelector('.empty-message');
         if (emptyMessage) {
             emptyMessage.remove();
@@ -195,7 +185,7 @@ class AIGameChallenge {
                 },
                 body: JSON.stringify({
                     prompt: prompt,
-                    previousPrompts: this.prompts.slice(0, -1), // 現在のプロンプト以外の履歴
+                    previousPrompts: this.prompts.slice(0, -1),
                     theme: this.currentTheme
                 })
             });
@@ -304,8 +294,6 @@ class AIGameChallenge {
         const showcaseSection = document.getElementById('showcase-section');
         const finalResultContainer = document.getElementById('final-result');
         const creationRecipeContainer = document.getElementById('creation-recipe');
-        
-        // 最後に生成されたゲームを表示
         if (this.gameHistory.length > 0) {
             const latestGame = this.gameHistory[this.gameHistory.length - 1];
             const iframe = document.createElement('iframe');
@@ -320,8 +308,6 @@ class AIGameChallenge {
         } else {
             finalResultContainer.innerHTML = '<p>ゲームが生成されませんでした</p>';
         }
-        
-        // 制作過程を表示
         creationRecipeContainer.innerHTML = '';
         this.prompts.forEach((item, index) => {
             const recipeItem = document.createElement('div');
@@ -370,13 +356,9 @@ class AIGameChallenge {
         this.currentParticipantIndex = 0;
         
         clearInterval(this.timerInterval);
-        
-        // 参加者とプロンプトをクリア
         this.participants = [];
         this.prompts = [];
         this.gameHistory = [];
-        
-        // UI をリセット
         document.getElementById('participant-count').textContent = '0';
         document.getElementById('current-player').textContent = '待機中...';
         document.getElementById('history').innerHTML = '<p class="empty-message">まだプロンプトがありません</p>';
@@ -434,8 +416,6 @@ class AIGameChallenge {
         }, 4000);
     }
 }
-
-// スタイルを追加
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
@@ -461,6 +441,4 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
-
-// ゲーム初期化
 const game = new AIGameChallenge();

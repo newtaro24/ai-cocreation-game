@@ -30,12 +30,12 @@ npm i
 #### 環境変数の設定
 
 `.env` を作成（gitignoreしてあります）して以下のような感じで記述
-以下サンプルです（適当に試すために、insightのlocalプロジェクト作りましたが、専用プロジェクト作って共有してもいいです）
+以下サンプルです
 
 ```env
 # Vertex AI設定
 GOOGLE_APPLICATION_CREDENTIALS=service-account-key.json
-PROJECT_ID=insight-local-001
+PROJECT_ID=XXXX
 LOCATION=asia-northeast1
 
 # 使いたいモデル
