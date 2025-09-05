@@ -30,10 +30,11 @@ class AIGameChallenge {
     
     initializeEventListeners() {
         document.getElementById('start-game').addEventListener('click', () => this.startChallenge());
+        document.getElementById('stop-game').addEventListener('click', () => this.stopChallenge());
+        document.getElementById('complete-game').addEventListener('click', () => this.completeChallenge());
         document.getElementById('submit-prompt').addEventListener('click', () => this.submitPrompt());
         document.getElementById('add-participant').addEventListener('click', () => this.addParticipant());
         document.getElementById('new-challenge').addEventListener('click', () => this.resetChallenge());
-        document.getElementById('share-game').addEventListener('click', () => this.shareGame());
         
         document.getElementById('prompt-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.ctrlKey) {
@@ -54,8 +55,9 @@ class AIGameChallenge {
         this.timeRemaining = 300;
         this.selectRandomTheme();
         
-        document.getElementById('start-game').disabled = true;
-        document.getElementById('start-game').textContent = 'チャレンジ進行中...';
+        document.getElementById('start-game').style.display = 'none';
+        document.getElementById('stop-game').style.display = 'inline-block';
+        document.getElementById('complete-game').style.display = 'inline-block';
         
         this.enableInputs();
         this.startTimer();
@@ -271,12 +273,46 @@ class AIGameChallenge {
         document.getElementById('add-participant').disabled = true;
     }
     
+    stopChallenge() {
+        if (this.gameState !== 'playing') return;
+        
+        const confirmed = confirm('チャレンジを中断しますか？\n現在の進捗はリセットされます。');
+        if (!confirmed) return;
+        
+        this.gameState = 'stopped';
+        clearInterval(this.timerInterval);
+        
+        this.disableInputs();
+        document.querySelector('.timer').classList.remove('pulse');
+        
+        document.getElementById('start-game').style.display = 'inline-block';
+        document.getElementById('start-game').disabled = false;
+        document.getElementById('start-game').textContent = 'チャレンジ開始';
+        document.getElementById('stop-game').style.display = 'none';
+        document.getElementById('complete-game').style.display = 'none';
+        
+        this.showNotification('チャレンジを中断しました', 'warning');
+        this.resetChallenge();
+    }
+    
+    completeChallenge() {
+        if (this.gameState !== 'playing') return;
+        
+        const confirmed = confirm('チャレンジを今すぐ完了しますか？\nこれ以上の編集はできなくなります。');
+        if (!confirmed) return;
+        
+        this.endChallenge();
+    }
+    
     endChallenge() {
         this.gameState = 'finished';
         clearInterval(this.timerInterval);
         
         this.disableInputs();
         document.querySelector('.timer').classList.remove('pulse');
+        
+        document.getElementById('stop-game').style.display = 'none';
+        document.getElementById('complete-game').style.display = 'none';
         
         this.showShowcase();
         
@@ -323,31 +359,6 @@ class AIGameChallenge {
         showcaseSection.style.display = 'block';
     }
     
-    shareGame() {
-        if (this.gameHistory.length === 0) {
-            this.showNotification('シェアできるゲームがありません', 'warning');
-            return;
-        }
-        
-        const recipeText = this.prompts.map((p, i) => 
-            `${i + 1}. ${p.participant}: ${p.prompt}`
-        ).join('\n');
-        
-        const shareText = `AIゲーム生成チャレンジで作ったゲーム！\n\n${this.currentTheme}\n\n制作過程:\n${recipeText}`;
-        
-        if (navigator.share) {
-            navigator.share({
-                title: 'AIゲーム生成チャレンジ',
-                text: shareText,
-            }).catch(console.error);
-        } else {
-            navigator.clipboard.writeText(shareText).then(() => {
-                this.showNotification('制作過程をクリップボードにコピーしました！', 'success');
-            }).catch(() => {
-                this.showNotification('共有に失敗しました', 'error');
-            });
-        }
-    }
     
     
     resetChallenge() {

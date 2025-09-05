@@ -13,8 +13,8 @@ app.use(express.json());
 app.use(express.static('.'));
 
 const projectId = process.env.PROJECT_ID;
-const location = process.env.LOCATION || 'asia-northeast1';
-const modelName = process.env.MODEL_NAME || 'gemini-2.5-flash';
+const location = process.env.LOCATION || 'us-central1';
+const modelName = process.env.MODEL_NAME || 'gemini-2.5-pro';
 
 let vertex_ai;
 let model;
@@ -112,7 +112,19 @@ async function generateGameWithVertexAI(prompt, previousPrompts, theme) {
         
         const result = await model.generateContent(request);
         const response = result.response;
-        const content = response.candidates[0].content.parts[0].text;
+        
+        if (!response.candidates || response.candidates.length === 0) {
+            console.error('No candidates in response');
+            return createErrorGame('AIからの応答が取得できませんでした');
+        }
+        
+        const candidate = response.candidates[0];
+        if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+            console.error('No content parts in candidate');
+            return createErrorGame('AIからの応答が不完全でした');
+        }
+        
+        const content = candidate.content.parts[0].text;
         
         const htmlMatch = content.match(/<!DOCTYPE html>[\s\S]*?<\/html>/i) || 
                          content.match(/<html[\s\S]*?<\/html>/i);
