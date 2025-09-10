@@ -217,6 +217,63 @@ h1 {
     background: #229954;
 }
 
+/* セッション管理 */
+.session-manager {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    border: 1px solid #e9ecef;
+}
+
+.session-manager h2 {
+    margin-top: 0;
+    color: #495057;
+}
+
+.session-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.session-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.session-select {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+.session-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.session-info {
+    margin-top: 15px;
+    padding: 15px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.session-info p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.session-info strong {
+    color: #495057;
+}
+
 .btn-secondary:hover {
     background: #96a3b6;
 }

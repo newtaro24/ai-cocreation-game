@@ -4,9 +4,13 @@ const path = require('path');
 require('dotenv').config();
 
 const { VertexAI } = require('@google-cloud/vertexai');
+const DataManager = require('./data-manager');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// DataManagerのインスタンスを作成
+const dataManager = new DataManager();
 
 app.use(cors());
 app.use(express.json());
@@ -14,7 +18,7 @@ app.use(express.static('.'));
 
 const projectId = process.env.PROJECT_ID;
 const location = process.env.LOCATION || 'us-central1';
-const modelName = process.env.MODEL_NAME || 'gemini-2.5-pro';
+const modelName = process.env.MODEL_NAME || 'gemini-2.0-pro';
 
 let vertex_ai;
 let model;
@@ -247,6 +251,122 @@ app.post('/api/generate-game', async (req, res) => {
             error: 'ゲーム生成中にエラーが発生しました',
             details: error.message 
         });
+    }
+});
+
+// セッション管理のAPIエンドポイント
+app.post('/api/sessions', (req, res) => {
+    try {
+        const { sessionName, theme } = req.body;
+        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        const sessionData = {
+            id: sessionId,
+            name: sessionName || `セッション_${new Date().toLocaleString()}`,
+            theme: theme || '「5秒で遊べるミニゲーム」を作ろう！',
+            createdAt: new Date().toISOString(),
+            gameState: 'waiting',
+            participants: [],
+            gameHistory: []
+        };
+        
+        dataManager.saveSession(sessionId, sessionData);
+        res.json({ success: true, session: sessionData });
+    } catch (error) {
+        console.error('Error creating session:', error);
+        res.status(500).json({ error: 'セッションの作成に失敗しました' });
+    }
+});
+
+app.get('/api/sessions', (req, res) => {
+    try {
+        const sessions = dataManager.getAllSessions();
+        res.json({ success: true, sessions });
+    } catch (error) {
+        console.error('Error loading sessions:', error);
+        res.status(500).json({ error: 'セッションの取得に失敗しました' });
+    }
+});
+
+app.get('/api/sessions/:sessionId', (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const session = dataManager.loadSession(sessionId);
+        
+        if (!session) {
+            return res.status(404).json({ error: 'セッションが見つかりません' });
+        }
+        
+        const participants = dataManager.loadParticipants(sessionId);
+        const gameHistory = dataManager.loadGameHistory(sessionId);
+        
+        res.json({
+            success: true,
+            session: {
+                ...session,
+                participants,
+                gameHistory
+            }
+        });
+    } catch (error) {
+        console.error('Error loading session:', error);
+        res.status(500).json({ error: 'セッションの取得に失敗しました' });
+    }
+});
+
+app.put('/api/sessions/:sessionId', (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const { participants, gameHistory, gameState } = req.body;
+        
+        // セッションの存在確認
+        const existingSession = dataManager.loadSession(sessionId);
+        if (!existingSession) {
+            return res.status(404).json({ error: 'セッションが見つかりません' });
+        }
+        
+        // データを保存
+        if (participants !== undefined) {
+            dataManager.saveParticipants(sessionId, participants);
+        }
+        if (gameHistory !== undefined) {
+            dataManager.saveGameHistory(sessionId, gameHistory);
+        }
+        if (gameState !== undefined) {
+            const updatedSession = { ...existingSession, gameState };
+            dataManager.saveSession(sessionId, updatedSession);
+        }
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating session:', error);
+        res.status(500).json({ error: 'セッションの更新に失敗しました' });
+    }
+});
+
+app.delete('/api/sessions/:sessionId', (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const success = dataManager.deleteSession(sessionId);
+        
+        if (success) {
+            res.json({ success: true });
+        } else {
+            res.status(500).json({ error: 'セッションの削除に失敗しました' });
+        }
+    } catch (error) {
+        console.error('Error deleting session:', error);
+        res.status(500).json({ error: 'セッションの削除に失敗しました' });
+    }
+});
+
+app.get('/api/stats', (req, res) => {
+    try {
+        const stats = dataManager.getStats();
+        res.json({ success: true, stats });
+    } catch (error) {
+        console.error('Error getting stats:', error);
+        res.status(500).json({ error: '統計の取得に失敗しました' });
     }
 });
 

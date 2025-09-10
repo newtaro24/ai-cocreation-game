@@ -13,6 +13,29 @@
             <p class="subtitle">みんなでAIと協力してゲームを作ろう！</p>
         </header>
 
+        <div class="session-manager" id="session-manager">
+            <h2>セッション管理</h2>
+            <div class="session-controls">
+                <div class="session-selector">
+                    <label for="session-select">現在のセッション:</label>
+                    <select id="session-select" class="session-select">
+                        <option value="">新しいセッション</option>
+                    </select>
+                </div>
+                <div class="session-buttons">
+                    <button id="new-session" class="btn btn-primary">新規作成</button>
+                    <button id="load-session" class="btn btn-secondary">読み込み</button>
+                    <button id="delete-session" class="btn btn-danger" style="display: none;">削除</button>
+                </div>
+            </div>
+            <div id="session-info" class="session-info" style="display: none;">
+                <p><strong>セッション名:</strong> <span id="session-name"></span></p>
+                <p><strong>作成日時:</strong> <span id="session-created"></span></p>
+                <p><strong>参加者数:</strong> <span id="session-participants"></span>人</p>
+                <p><strong>ゲーム数:</strong> <span id="session-games"></span>個</p>
+            </div>
+        </div>
+
         <div class="game-info">
             <div class="theme-section">
                 <h2>今回のお題</h2>
