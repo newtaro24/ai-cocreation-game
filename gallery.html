@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI共創ゲーム - 成果物ギャラリー</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stats {
+            color: white;
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn.primary {
+            background: rgba(76, 175, 80, 0.8);
+        }
+
+        .btn.primary:hover {
+            background: rgba(76, 175, 80, 1);
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            margin: 50px 0;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 2s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .game-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.15);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .game-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+
+        .game-date {
+            font-size: 0.85em;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .game-meta {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .meta-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .meta-label {
+            font-weight: 500;
+            color: #555;
+        }
+
+        .meta-value {
+            color: #777;
+            text-align: right;
+            flex: 1;
+            margin-left: 10px;
+            word-break: break-word;
+        }
+
+        .game-prompt {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.95em;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .game-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s ease;
+        }
+
+        .game-btn:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        .game-btn.secondary {
+            background: #6c757d;
+        }
+
+        .game-btn.secondary:hover {
+            background: #545b62;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: white;
+            padding: 50px;
+        }
+
+        .empty-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.7;
+        }
+
+        .empty-message {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .empty-hint {
+            opacity: 0.8;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            height: 80%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .modal-body {
+            height: calc(100% - 80px);
+        }
+
+        .game-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        @media (max-width: 768px) {
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .stats {
+                justify-content: center;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 AI共創ゲーム ギャラリー</h1>
+            <p class="subtitle">みんなで作った素晴らしいゲームたち</p>
+        </header>
+
+        <div class="controls">
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="total-games">-</span>
+                    <span class="stat-label">総ゲーム数</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="total-sessions">-</span>
+                    <span class="stat-label">セッション数</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="total-participants">-</span>
+                    <span class="stat-label">参加者数</span>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="btn" onclick="refreshGallery()">🔄 更新</button>
+                <button class="btn primary" onclick="window.location.href='/'">🏠 メイン画面</button>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            🔄 ゲーム一覧を読み込み中
+        </div>
+
+        <div id="games-container" class="games-grid" style="display: none;">
+            <!-- ゲームカードがここに動的に追加されます -->
+        </div>
+
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <div class="empty-icon">🎮</div>
+            <div class="empty-message">まだゲームが作成されていません</div>
+            <div class="empty-hint">メイン画面でゲーム作成を始めましょう！</div>
+        </div>
+    </div>
+
+    <!-- ゲーム表示モーダル -->
+    <div id="game-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">ゲームタイトル</div>
+                <button class="close" onclick="closeGameModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="game-iframe" class="game-iframe"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = `http://localhost:${window.location.port || '3000'}`;
+
+        // ページ読み込み時に実行
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGallery();
+            loadStats();
+        });
+
+        // ゲーム一覧を読み込み
+        async function loadGallery() {
+            const loading = document.getElementById('loading');
+            const gamesContainer = document.getElementById('games-container');
+            const emptyState = document.getElementById('empty-state');
+
+            loading.style.display = 'block';
+            gamesContainer.style.display = 'none';
+            emptyState.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/games/all`);
+                const data = await response.json();
+
+                if (data.success && data.games.length > 0) {
+                    displayGames(data.games);
+                    gamesContainer.style.display = 'grid';
+                } else {
+                    emptyState.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Failed to load games:', error);
+                emptyState.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // 統計情報を読み込み
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/stats`);
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('total-games').textContent = data.stats.totalGames;
+                    document.getElementById('total-sessions').textContent = data.stats.totalSessions;
+                    document.getElementById('total-participants').textContent = data.stats.totalParticipants;
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        // ゲーム一覧を表示
+        function displayGames(games) {
+            const container = document.getElementById('games-container');
+            container.innerHTML = '';
+
+            games.forEach(game => {
+                const gameCard = createGameCard(game);
+                container.appendChild(gameCard);
+            });
+        }
+
+        // ゲームカードを作成
+        function createGameCard(game) {
+            const card = document.createElement('div');
+            card.className = 'game-card';
+
+            const date = new Date(game.createdAt).toLocaleDateString('ja-JP');
+            const time = new Date(game.createdAt).toLocaleTimeString('ja-JP', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            const fileSizeKB = Math.round(game.fileSize / 1024);
+
+            card.innerHTML = `
+                <div class="game-header">
+                    <div class="game-title">🎮 ${truncateText(game.prompt, 40)}</div>
+                    <div class="game-date">${date}<br>${time}</div>
+                </div>
+                
+                <div class="game-meta">
+                    <div class="meta-row">
+                        <span class="meta-label">👤 作成者:</span>
+                        <span class="meta-value">${game.participant}</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">🎯 テーマ:</span>
+                        <span class="meta-value">${truncateText(game.sessionTheme, 30)}</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">📁 ファイル:</span>
+                        <span class="meta-value">${game.fileName} (${fileSizeKB}KB)</span>
+                    </div>
+                </div>
+
+                <div class="game-prompt">
+                    💬 "${game.prompt}"
+                </div>
+
+                <div class="game-actions">
+                    <button class="game-btn secondary" onclick="copyGameUrl('${game.url}')">📋 URL</button>
+                    <button class="game-btn" onclick="openGameModal('${game.prompt}', '${game.url}')">🎮 プレイ</button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // テキストを指定文字数で切り詰め
+        function truncateText(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+
+        // ゲームモーダルを開く
+        function openGameModal(title, url) {
+            const modal = document.getElementById('game-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const iframe = document.getElementById('game-iframe');
+
+            modalTitle.textContent = title;
+            iframe.src = url;
+            modal.style.display = 'block';
+
+            // ESCキーで閉じる
+            document.addEventListener('keydown', handleModalKeydown);
+        }
+
+        // ゲームモーダルを閉じる
+        function closeGameModal() {
+            const modal = document.getElementById('game-modal');
+            const iframe = document.getElementById('game-iframe');
+
+            modal.style.display = 'none';
+            iframe.src = '';
+
+            document.removeEventListener('keydown', handleModalKeydown);
+        }
+
+        // モーダルのキーボード操作
+        function handleModalKeydown(e) {
+            if (e.key === 'Escape') {
+                closeGameModal();
+            }
+        }
+
+        // ゲームURLをコピー
+        function copyGameUrl(url) {
+            const fullUrl = `${window.location.origin}${url}`;
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                showNotification('URLをコピーしました！', 'success');
+            }).catch(() => {
+                showNotification('URLのコピーに失敗しました', 'error');
+            });
+        }
+
+        // ギャラリーを更新
+        function refreshGallery() {
+            loadGallery();
+            loadStats();
+            showNotification('ギャラリーを更新しました', 'success');
+        }
+
+        // 通知を表示
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 2000;
+                animation: slideIn 0.3s ease;
+                font-weight: 500;
+                max-width: 300px;
+            `;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // モーダル外クリックで閉じる
+        window.onclick = function(event) {
+            const modal = document.getElementById('game-modal');
+            if (event.target === modal) {
+                closeGameModal();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -23,18 +23,34 @@ app.use('/data/sessions', express.static(path.join(__dirname, '../data', 'sessio
 
 // API Routes
 app.use('/api/sessions', sessionRoutes);
-
-// セッション内ゲーム関連のルート
-app.post('/api/sessions/:sessionId/games', (req, res) => {
-    // リクエストパラメータを調整
-    req.url = `/${req.params.sessionId}/save`;
-    req.path = `/${req.params.sessionId}/save`;
-    gameRoutes(req, res);
-});
-
 app.use('/api/games', gameRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api', statsRoutes); // For health endpoint
+
+// セッション内ゲーム関連のルート  
+app.post('/api/sessions/:sessionId/games', (req, res) => {
+    const { sessionId } = req.params;
+    const { html, prompt, participant, gameIndex } = req.body;
+    
+    const fileService = require('./services/file-service');
+    
+    try {
+        const result = fileService.saveGameFile(sessionId, {
+            html, prompt, participant, gameIndex
+        });
+        
+        console.log(`Game saved: ${result.fileName} in session ${sessionId}`);
+        
+        res.json({ 
+            success: true, 
+            fileName: result.fileName,
+            filePath: result.filePath
+        });
+    } catch (error) {
+        console.error('Error saving game file:', error);
+        res.status(500).json({ error: 'ゲームファイルの保存に失敗しました' });
+    }
+});
 
 // Legacy API compatibility  
 app.post('/api/generate-game', (req, res, next) => {
