@@ -1,5 +1,6 @@
 class AIGameChallenge {
     constructor() {
+        console.log('=== AIGameChallenge constructor called ===');
         this.gameState = 'waiting';
         this.timeRemaining = 300;
         this.timerInterval = null;
@@ -8,6 +9,9 @@ class AIGameChallenge {
         this.currentParticipantIndex = 0;
         this.prompts = [];
         this.gameHistory = [];
+        this.apiBaseUrl = `http://localhost:${window.location.port || '3000'}`;
+        this.currentSessionId = null;
+        console.log('API Base URL:', this.apiBaseUrl);
         this.stats = {
             totalPrompts: 0,
             totalParticipants: 0,
@@ -26,14 +30,15 @@ class AIGameChallenge {
         
         this.initializeEventListeners();
         this.updateStats();
+        this.initializeGallery();
     }
+
     
     initializeEventListeners() {
-        document.getElementById('start-game').addEventListener('click', () => this.startChallenge());
+        document.getElementById('start-game').addEventListener('click', () => this.showStartModal());
         document.getElementById('stop-game').addEventListener('click', () => this.stopChallenge());
         document.getElementById('complete-game').addEventListener('click', () => this.completeChallenge());
         document.getElementById('submit-prompt').addEventListener('click', () => this.submitPrompt());
-        document.getElementById('add-participant').addEventListener('click', () => this.addParticipant());
         document.getElementById('new-challenge').addEventListener('click', () => this.resetChallenge());
         
         document.getElementById('prompt-input').addEventListener('keydown', (e) => {
@@ -43,13 +48,237 @@ class AIGameChallenge {
         });
     }
     
-    startChallenge() {
-        if (this.gameState !== 'waiting') return;
+    showStartModal() {
+        const modal = document.getElementById('start-modal');
+        const input = document.getElementById('participants-input');
+        const error = document.getElementById('start-error');
+        const cancelBtn = document.getElementById('start-cancel');
+        const confirmBtn = document.getElementById('start-confirm');
+
+        // モーダルを表示
+        modal.style.display = 'flex';
+        input.value = '';
+        input.focus();
+        error.style.display = 'none';
+
+        // 確認処理
+        const handleConfirm = () => {
+            const participantsText = input.value.trim();
+            
+            if (participantsText.length === 0) {
+                this.showStartError('参加者名を入力してください');
+                return;
+            }
+            
+            // カンマ区切りで参加者を解析
+            const names = participantsText.split(',').map(name => name.trim()).filter(name => name.length > 0);
+            
+            if (names.length === 0) {
+                this.showStartError('有効な参加者名を入力してください');
+                return;
+            }
+            
+            if (names.length > 10) {
+                this.showStartError('参加者は10人まで登録できます');
+                return;
+            }
+            
+            // 重複チェック
+            const duplicates = names.filter((name, index) => names.indexOf(name) !== index);
+            if (duplicates.length > 0) {
+                this.showStartError(`重複する参加者名があります: ${duplicates[0]}`);
+                return;
+            }
+            
+            // 参加者を登録
+            this.participants = names.map(name => ({
+                name: name,
+                prompts: [],
+                joinedAt: new Date()
+            }));
+            
+            console.log('=== Participants registered ===');
+            console.log('Participants:', this.participants);
+            
+            this.stats.totalParticipants += names.length;
+            this.updateStats();
+            this.updateParticipantDisplay();
+            this.hideStartModal();
+            this.createSession().then(() => this.startChallenge());
+        };
+
+        // イベントリスナー設定
+        const handleClose = () => this.hideStartModal();
         
-        if (this.participants.length === 0) {
-            this.showNotification('参加者を追加してください', 'warning');
+        cancelBtn.onclick = handleClose;
+        confirmBtn.onclick = handleConfirm;
+        
+        // Enterキーで確認
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                handleConfirm();
+            }
+            if (e.key === 'Escape') {
+                handleClose();
+            }
+        };
+
+        // モーダル外クリックで閉じる
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                handleClose();
+            }
+        };
+    }
+
+    hideStartModal() {
+        const modal = document.getElementById('start-modal');
+        modal.style.display = 'none';
+        
+        // イベントリスナーをクリア
+        const cancelBtn = document.getElementById('start-cancel');
+        const confirmBtn = document.getElementById('start-confirm');
+        const input = document.getElementById('participants-input');
+        
+        cancelBtn.onclick = null;
+        confirmBtn.onclick = null;
+        input.onkeydown = null;
+        modal.onclick = null;
+    }
+
+    showStartError(message) {
+        const error = document.getElementById('start-error');
+        error.textContent = message;
+        error.style.display = 'block';
+    }
+
+    // セッション作成
+    async createSession() {
+        console.log('=== createSession called ===');
+        console.log('Current participants before session creation:', {
+            count: this.participants.length,
+            participants: this.participants
+        });
+        
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/api/sessions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sessionName: `ゲームセッション_${new Date().toLocaleString()}`,
+                    theme: this.currentTheme
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('セッション作成エラー');
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                this.currentSessionId = data.session.id;
+                console.log('Session created successfully:', this.currentSessionId);
+                console.log('Saving initial session data with participants:', this.participants.length);
+                await this.saveSessionData();
+            }
+        } catch (error) {
+            console.error('Failed to create session:', error);
+            // エラーが発生してもゲームは続行
+        }
+    }
+
+    // 新しい構造でゲームファイルを保存
+    async saveGameFile(html, prompt, participant, gameIndex) {
+        if (!this.currentSessionId) {
+            console.warn('No session ID available for game file saving');
             return;
         }
+
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/api/sessions/${this.currentSessionId}/games`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    html: html,
+                    prompt: prompt,
+                    participant: participant,
+                    gameIndex: gameIndex
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('ゲームファイル保存エラー');
+            }
+
+            const result = await response.json();
+            console.log('Game file saved successfully:', result.fileName);
+        } catch (error) {
+            console.error('Failed to save game file:', error);
+        }
+    }
+
+    // セッションデータの保存
+    async saveSessionData() {
+        console.log('=== saveSessionData called ===');
+        
+        if (!this.currentSessionId) {
+            console.warn('No session ID available for saving');
+            return;
+        }
+
+        console.log('Detailed saving session data:', {
+            sessionId: this.currentSessionId,
+            participantsCount: this.participants.length,
+            participantsData: this.participants,
+            gameHistoryCount: this.gameHistory.length,
+            gameHistoryData: this.gameHistory.map(h => ({
+                participant: h.participant,
+                prompt: h.prompt,
+                hasHtml: !!h.html,
+                htmlLength: h.html ? h.html.length : 0
+            })),
+            gameState: this.gameState
+        });
+
+        try {
+            const requestBody = {
+                participants: this.participants,
+                gameHistory: this.gameHistory,
+                gameState: this.gameState
+            };
+            
+            console.log('Request body size:', JSON.stringify(requestBody).length);
+            
+            const response = await fetch(`${this.apiBaseUrl}/api/sessions/${this.currentSessionId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Response error:', errorText);
+                throw new Error(`セッションデータ保存エラー: ${response.status} ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('Session data saved successfully:', result);
+        } catch (error) {
+            console.error('Failed to save session data:', error);
+        }
+    }
+
+    startChallenge() {
+        if (this.gameState !== 'waiting') return;
         
         this.gameState = 'playing';
         this.timeRemaining = 300;
@@ -72,26 +301,20 @@ class AIGameChallenge {
         document.getElementById('current-theme').textContent = this.currentTheme;
     }
     
-    addParticipant() {
-        const name = prompt('参加者の名前を入力してください:');
-        if (!name || name.trim() === '') return;
+
+    // シンプルなプロンプト検証
+    validatePrompt(prompt) {
+        const trimmed = prompt.trim();
         
-        const participantName = name.trim();
-        if (this.participants.some(p => p.name === participantName)) {
-            this.showNotification('既に同じ名前の参加者がいます', 'warning');
-            return;
+        if (trimmed.length === 0) {
+            return { valid: false, message: 'プロンプトを入力してください' };
         }
         
-        this.participants.push({
-            name: participantName,
-            prompts: [],
-            joinedAt: new Date()
-        });
+        if (trimmed.length > 1000) {
+            return { valid: false, message: 'プロンプトは1000文字以内で入力してください' };
+        }
         
-        this.stats.totalParticipants++;
-        this.updateStats();
-        this.updateParticipantDisplay();
-        this.showNotification(`${participantName}さんが参加しました！`, 'success');
+        return { valid: true, sanitized: trimmed };
     }
     
     updateParticipantDisplay() {
@@ -112,7 +335,7 @@ class AIGameChallenge {
         document.getElementById('current-player').textContent = currentParticipant.name;
     }
     
-    submitPrompt() {
+    async submitPrompt() {
         if (this.gameState !== 'playing') {
             this.showNotification('チャレンジが開始されていません', 'warning');
             return;
@@ -126,15 +349,17 @@ class AIGameChallenge {
         const promptInput = document.getElementById('prompt-input');
         const prompt = promptInput.value.trim();
         
-        if (!prompt) {
-            this.showNotification('プロンプトを入力してください', 'error');
+        // プロンプトの検証
+        const validation = this.validatePrompt(prompt);
+        if (!validation.valid) {
+            this.showNotification(validation.message, 'error');
             return;
         }
         
         const currentParticipant = this.participants[this.currentParticipantIndex];
         const promptData = {
             participant: currentParticipant.name,
-            prompt: prompt,
+            prompt: validation.sanitized, // サニタイズされたプロンプトを使用
             timestamp: new Date().toLocaleTimeString(),
             order: this.prompts.length + 1
         };
@@ -143,7 +368,9 @@ class AIGameChallenge {
         currentParticipant.prompts.push(promptData);
         
         this.addToHistory(promptData);
-        this.generateGameResult(prompt);
+        
+        // ゲーム生成（現在の参加者情報を保持してから次の参加者に移る）
+        await this.generateGameResult(validation.sanitized, currentParticipant.name);
         
         promptInput.value = '';
         this.currentParticipantIndex = (this.currentParticipantIndex + 1) % this.participants.length;
@@ -174,13 +401,13 @@ class AIGameChallenge {
         historyContainer.scrollTop = historyContainer.scrollHeight;
     }
     
-    async generateGameResult(prompt) {
+    async generateGameResult(prompt, participantName) {
         const resultContainer = document.getElementById('result');
         
         resultContainer.innerHTML = '<div class="loading"></div><p>AIがゲームを生成中...</p>';
         
         try {
-            const response = await fetch('http://localhost:3000/api/generate-game', {
+            const response = await fetch(`${this.apiBaseUrl}/api/generate-game`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -213,11 +440,20 @@ class AIGameChallenge {
                     prompt: prompt,
                     html: data.html,
                     timestamp: new Date(),
-                    participant: this.participants[this.currentParticipantIndex].name
+                    participant: participantName  // 正しい参加者名を使用
                 });
                 
                 this.stats.gamesCreated++;
                 this.updateStats();
+                
+                // データを保存（従来の方式）
+                await this.saveSessionData();
+                
+                // 新しい構造でもHTMLファイルを保存
+                await this.saveGameFile(data.html, prompt, participantName, this.gameHistory.length);
+                
+                console.log('Game saved with participant:', participantName);
+                console.log('Current gameHistory length:', this.gameHistory.length);
             } else {
                 throw new Error('生成失敗');
             }
@@ -264,13 +500,11 @@ class AIGameChallenge {
     enableInputs() {
         document.getElementById('prompt-input').disabled = false;
         document.getElementById('submit-prompt').disabled = false;
-        document.getElementById('add-participant').disabled = false;
     }
     
     disableInputs() {
         document.getElementById('prompt-input').disabled = true;
         document.getElementById('submit-prompt').disabled = true;
-        document.getElementById('add-participant').disabled = true;
     }
     
     stopChallenge() {
@@ -304,7 +538,8 @@ class AIGameChallenge {
         this.endChallenge();
     }
     
-    endChallenge() {
+    async endChallenge() {
+        console.log('=== endChallenge called ===');
         this.gameState = 'finished';
         clearInterval(this.timerInterval);
         
@@ -315,6 +550,15 @@ class AIGameChallenge {
         document.getElementById('complete-game').style.display = 'none';
         
         this.showShowcase();
+        
+        // 最終データを保存
+        console.log('Final data before saving:', {
+            participants: this.participants.length,
+            gameHistory: this.gameHistory.length,
+            gameState: this.gameState
+        });
+        
+        await this.saveSessionData();
         
         this.showNotification('制作時間終了！完成したゲームをご覧ください！', 'info');
         
@@ -399,6 +643,116 @@ class AIGameChallenge {
         document.getElementById('total-prompts').textContent = this.stats.totalPrompts;
         document.getElementById('total-participants').textContent = this.stats.totalParticipants;
         document.getElementById('games-created').textContent = this.stats.gamesCreated;
+    }
+    
+    // ギャラリー機能の初期化
+    initializeGallery() {
+        const loadGalleryBtn = document.getElementById('load-gallery');
+        const hideGalleryBtn = document.getElementById('hide-gallery');
+        
+        loadGalleryBtn.addEventListener('click', () => this.loadGameGallery());
+        hideGalleryBtn.addEventListener('click', () => this.hideGameGallery());
+    }
+    
+    // ゲームギャラリーを読み込み
+    async loadGameGallery() {
+        const gallerySection = document.getElementById('game-gallery-section');
+        const galleryContent = document.getElementById('gallery-content');
+        const loadBtn = document.getElementById('load-gallery');
+        const hideBtn = document.getElementById('hide-gallery');
+        
+        // ローディング表示
+        galleryContent.innerHTML = '<div class="gallery-loading">🔄 ゲーム履歴を読み込み中...</div>';
+        gallerySection.style.display = 'block';
+        
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/api/games/all`);
+            
+            if (!response.ok) {
+                throw new Error('ゲーム履歴の取得に失敗しました');
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.games.length > 0) {
+                this.displayGameGallery(data.games);
+                loadBtn.style.display = 'none';
+                hideBtn.style.display = 'inline-block';
+            } else {
+                galleryContent.innerHTML = '<div class="gallery-empty">📝 まだゲームが作成されていません。<br>チャレンジを完了するとここに表示されます！</div>';
+            }
+            
+        } catch (error) {
+            console.error('Failed to load game gallery:', error);
+            galleryContent.innerHTML = '<div class="gallery-empty">❌ ゲーム履歴の読み込みに失敗しました。</div>';
+        }
+    }
+    
+    // ゲームギャラリーを表示
+    displayGameGallery(games) {
+        const galleryContent = document.getElementById('gallery-content');
+        
+        const galleryGrid = document.createElement('div');
+        galleryGrid.className = 'gallery-grid';
+        
+        games.forEach(game => {
+            const gameCard = document.createElement('div');
+            gameCard.className = 'game-card';
+            gameCard.onclick = () => this.playGameFile(game);
+            
+            const date = new Date(game.createdAt).toLocaleDateString('ja-JP');
+            const time = new Date(game.createdAt).toLocaleTimeString('ja-JP', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            const fileSizeKB = Math.round(game.fileSize / 1024);
+            
+            gameCard.innerHTML = `
+                <div class="game-card-header">
+                    <h3 class="game-card-title">🎮 ${game.prompt.substring(0, 30)}${game.prompt.length > 30 ? '...' : ''}</h3>
+                    <div class="game-card-date">${date} ${time}</div>
+                </div>
+                <div class="game-card-meta">
+                    <div class="game-card-participant">👤 ${game.participant} | 📁 ${game.fileName} (${fileSizeKB}KB)</div>
+                    <div class="game-card-session">🎯 ${game.sessionTheme} | 📂 ${game.sessionName}</div>
+                </div>
+                <div class="game-card-prompt">${game.prompt}</div>
+            `;
+            
+            galleryGrid.appendChild(gameCard);
+        });
+        
+        galleryContent.innerHTML = '';
+        galleryContent.appendChild(galleryGrid);
+    }
+    
+    // ゲームギャラリーを隠す
+    hideGameGallery() {
+        const gallerySection = document.getElementById('game-gallery-section');
+        const loadBtn = document.getElementById('load-gallery');
+        const hideBtn = document.getElementById('hide-gallery');
+        
+        gallerySection.style.display = 'none';
+        loadBtn.style.display = 'inline-block';
+        hideBtn.style.display = 'none';
+    }
+    
+    // 過去のゲームをプレイ（HTMLファイル版）
+    playGameFile(game) {
+        // 新しいウィンドウでHTMLファイルを開く
+        const gameWindow = window.open(game.url, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+        if (gameWindow) {
+            gameWindow.document.title = `${game.prompt}`;
+        }
+    }
+    
+    // 過去のゲームをプレイ（レガシー版）
+    playGame(game) {
+        // モーダルまたは新しいウィンドウでゲームを表示
+        const gameWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+        gameWindow.document.write(game.html);
+        gameWindow.document.title = `${game.prompt} - by ${game.participant}`;
     }
     
     showNotification(message, type = 'info') {

@@ -72,7 +72,6 @@
                     ></textarea>
                     <div class="input-controls">
                         <button id="submit-prompt" class="btn btn-submit">送信</button>
-                        <button id="add-participant" class="btn btn-add">参加者追加</button>
                     </div>
                 </div>
 
@@ -110,10 +109,40 @@
             </div>
         </div>
 
+        <!-- ゲームギャラリーセクション -->
+        <div class="game-gallery-section" id="game-gallery-section" style="display: none;">
+            <h2>🎮 過去のゲームギャラリー</h2>
+            <p>これまでに作成されたゲームを見てみましょう！</p>
+            <div class="gallery-controls">
+                <button class="btn btn-primary" id="load-gallery">ギャラリーを読み込む</button>
+                <button class="btn btn-secondary" id="hide-gallery" style="display: none;">ギャラリーを隠す</button>
+            </div>
+            <div id="gallery-content"></div>
+        </div>
+
         <div class="stats-section">
             <span>プロンプト: <strong id="total-prompts">0</strong></span>
             <span>参加者: <strong id="total-participants">0</strong></span>
             <span>ゲーム: <strong id="games-created">0</strong></span>
+        </div>
+    </div>
+
+    <!-- チャレンジ開始モーダル -->
+    <div id="start-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>チャレンジを開始</h3>
+            </div>
+            <div class="modal-body">
+                <label for="participants-input">参加者の名前をカンマ区切りで入力:</label>
+                <textarea id="participants-input" class="modal-input" placeholder="例: 田中, 佐藤, 鈴木" rows="3" maxlength="200"></textarea>
+                <div class="modal-hint">1人でも複数人でも参加できます</div>
+                <div class="modal-error" id="start-error" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="start-cancel" class="btn btn-secondary">キャンセル</button>
+                <button id="start-confirm" class="btn btn-primary">開始</button>
+            </div>
         </div>
     </div>
 
