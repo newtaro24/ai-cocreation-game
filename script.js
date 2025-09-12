@@ -1,6 +1,5 @@
 class AIGameChallenge {
     constructor() {
-        console.log('=== AIGameChallenge constructor called ===');
         this.gameState = 'waiting';
         this.timeRemaining = 300;
         this.timerInterval = null;
@@ -11,7 +10,6 @@ class AIGameChallenge {
         this.gameHistory = [];
         this.apiBaseUrl = `http://localhost:${window.location.port || '3000'}`;
         this.currentSessionId = null;
-        console.log('API Base URL:', this.apiBaseUrl);
         this.stats = {
             totalPrompts: 0,
             totalParticipants: 0,
@@ -97,9 +95,6 @@ class AIGameChallenge {
                 joinedAt: new Date()
             }));
             
-            console.log('=== Participants registered ===');
-            console.log('Participants:', this.participants);
-            
             this.stats.totalParticipants += names.length;
             this.updateStats();
             this.updateParticipantDisplay();
@@ -155,12 +150,6 @@ class AIGameChallenge {
 
     // セッション作成
     async createSession() {
-        console.log('=== createSession called ===');
-        console.log('Current participants before session creation:', {
-            count: this.participants.length,
-            participants: this.participants
-        });
-        
         try {
             const response = await fetch(`${this.apiBaseUrl}/api/sessions`, {
                 method: 'POST',
@@ -180,8 +169,6 @@ class AIGameChallenge {
             const data = await response.json();
             if (data.success) {
                 this.currentSessionId = data.session.id;
-                console.log('Session created successfully:', this.currentSessionId);
-                console.log('Saving initial session data with participants:', this.participants.length);
                 await this.saveSessionData();
             }
         } catch (error) {
@@ -216,7 +203,6 @@ class AIGameChallenge {
             }
 
             const result = await response.json();
-            console.log('Game file saved successfully:', result.fileName);
         } catch (error) {
             console.error('Failed to save game file:', error);
         }
@@ -224,26 +210,9 @@ class AIGameChallenge {
 
     // セッションデータの保存
     async saveSessionData() {
-        console.log('=== saveSessionData called ===');
-        
         if (!this.currentSessionId) {
-            console.warn('No session ID available for saving');
             return;
         }
-
-        console.log('Detailed saving session data:', {
-            sessionId: this.currentSessionId,
-            participantsCount: this.participants.length,
-            participantsData: this.participants,
-            gameHistoryCount: this.gameHistory.length,
-            gameHistoryData: this.gameHistory.map(h => ({
-                participant: h.participant,
-                prompt: h.prompt,
-                hasHtml: !!h.html,
-                htmlLength: h.html ? h.html.length : 0
-            })),
-            gameState: this.gameState
-        });
 
         try {
             const requestBody = {
@@ -252,8 +221,6 @@ class AIGameChallenge {
                 gameState: this.gameState
             };
             
-            console.log('Request body size:', JSON.stringify(requestBody).length);
-            
             const response = await fetch(`${this.apiBaseUrl}/api/sessions/${this.currentSessionId}`, {
                 method: 'PUT',
                 headers: {
@@ -261,8 +228,6 @@ class AIGameChallenge {
                 },
                 body: JSON.stringify(requestBody)
             });
-
-            console.log('Response status:', response.status);
             
             if (!response.ok) {
                 const errorText = await response.text();
@@ -271,7 +236,6 @@ class AIGameChallenge {
             }
 
             const result = await response.json();
-            console.log('Session data saved successfully:', result);
         } catch (error) {
             console.error('Failed to save session data:', error);
         }
@@ -451,9 +415,6 @@ class AIGameChallenge {
                 
                 // 新しい構造でもHTMLファイルを保存
                 await this.saveGameFile(data.html, prompt, participantName, this.gameHistory.length);
-                
-                console.log('Game saved with participant:', participantName);
-                console.log('Current gameHistory length:', this.gameHistory.length);
             } else {
                 throw new Error('生成失敗');
             }
@@ -539,7 +500,6 @@ class AIGameChallenge {
     }
     
     async endChallenge() {
-        console.log('=== endChallenge called ===');
         this.gameState = 'finished';
         clearInterval(this.timerInterval);
         
@@ -552,12 +512,6 @@ class AIGameChallenge {
         this.showShowcase();
         
         // 最終データを保存
-        console.log('Final data before saving:', {
-            participants: this.participants.length,
-            gameHistory: this.gameHistory.length,
-            gameState: this.gameState
-        });
-        
         await this.saveSessionData();
         
         this.showNotification('制作時間終了！完成したゲームをご覧ください！', 'info');
@@ -745,14 +699,6 @@ class AIGameChallenge {
         if (gameWindow) {
             gameWindow.document.title = `${game.prompt}`;
         }
-    }
-    
-    // 過去のゲームをプレイ（レガシー版）
-    playGame(game) {
-        // モーダルまたは新しいウィンドウでゲームを表示
-        const gameWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-        gameWindow.document.write(game.html);
-        gameWindow.document.title = `${game.prompt} - by ${game.participant}`;
     }
     
     showNotification(message, type = 'info') {

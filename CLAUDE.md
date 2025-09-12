@@ -37,7 +37,6 @@
 ├── index.html              # フロントエンド
 ├── script.js               # フロントエンドロジック (757行)
 ├── styles.css              # スタイリング
-├── server.js               # レガシーサーバー (保持)
 └── data/                   # 永続化データ (gitignore済み)
     └── sessions/
         └── session_TIMESTAMP_ID/
