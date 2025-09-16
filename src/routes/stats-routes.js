@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const sessionService = require('../services/session-service');
+const fileService = require('../services/file-service');
 const { AI_CONFIG } = require('../config/ai-config');
 
 // 統計情報取得
 router.get('/', (req, res) => {
     try {
-        const stats = sessionService.getStats();
+        const stats = fileService.getStats();
         res.json({ success: true, stats });
     } catch (error) {
         console.error('Error getting stats:', error);

@@ -38,9 +38,10 @@ class AIGameChallenge {
         document.getElementById('complete-game').addEventListener('click', () => this.completeChallenge());
         document.getElementById('submit-prompt').addEventListener('click', () => this.submitPrompt());
         document.getElementById('new-challenge').addEventListener('click', () => this.resetChallenge());
-        
+        document.getElementById('view-gallery').addEventListener('click', () => window.location.href = '/gallery.html');
+
         document.getElementById('prompt-input').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && e.ctrlKey) {
+            if (e.key === 'Enter' && e.metaKey) {
                 this.submitPrompt();
             }
         });
@@ -99,7 +100,7 @@ class AIGameChallenge {
             this.updateStats();
             this.updateParticipantDisplay();
             this.hideStartModal();
-            this.createSession().then(() => this.startChallenge());
+            this.startChallenge();
         };
 
         // イベントリスナー設定
@@ -148,44 +149,11 @@ class AIGameChallenge {
         error.style.display = 'block';
     }
 
-    // セッション作成
-    async createSession() {
+
+    // ゲームファイル保存
+    async saveGameFile(html, prompt, participant) {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/api/sessions`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    sessionName: `ゲームセッション_${new Date().toLocaleString()}`,
-                    theme: this.currentTheme
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('セッション作成エラー');
-            }
-
-            const data = await response.json();
-            if (data.success) {
-                this.currentSessionId = data.session.id;
-                await this.saveSessionData();
-            }
-        } catch (error) {
-            console.error('Failed to create session:', error);
-            // エラーが発生してもゲームは続行
-        }
-    }
-
-    // 新しい構造でゲームファイルを保存
-    async saveGameFile(html, prompt, participant, gameIndex) {
-        if (!this.currentSessionId) {
-            console.warn('No session ID available for game file saving');
-            return;
-        }
-
-        try {
-            const response = await fetch(`${this.apiBaseUrl}/api/sessions/${this.currentSessionId}/games`, {
+            const response = await fetch(`${this.apiBaseUrl}/api/games/save`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -193,8 +161,7 @@ class AIGameChallenge {
                 body: JSON.stringify({
                     html: html,
                     prompt: prompt,
-                    participant: participant,
-                    gameIndex: gameIndex
+                    participant: participant
                 })
             });
 
@@ -203,43 +170,13 @@ class AIGameChallenge {
             }
 
             const result = await response.json();
+            console.log('Game file saved:', result.fileName);
+            return result;
         } catch (error) {
             console.error('Failed to save game file:', error);
         }
     }
 
-    // セッションデータの保存
-    async saveSessionData() {
-        if (!this.currentSessionId) {
-            return;
-        }
-
-        try {
-            const requestBody = {
-                participants: this.participants,
-                gameHistory: this.gameHistory,
-                gameState: this.gameState
-            };
-            
-            const response = await fetch(`${this.apiBaseUrl}/api/sessions/${this.currentSessionId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody)
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Response error:', errorText);
-                throw new Error(`セッションデータ保存エラー: ${response.status} ${errorText}`);
-            }
-
-            const result = await response.json();
-        } catch (error) {
-            console.error('Failed to save session data:', error);
-        }
-    }
 
     startChallenge() {
         if (this.gameState !== 'waiting') return;
@@ -411,10 +348,9 @@ class AIGameChallenge {
                 this.updateStats();
                 
                 // データを保存（従来の方式）
-                await this.saveSessionData();
                 
                 // 新しい構造でもHTMLファイルを保存
-                await this.saveGameFile(data.html, prompt, participantName, this.gameHistory.length);
+                await this.saveGameFile(data.html, prompt, participantName);
             } else {
                 throw new Error('生成失敗');
             }
@@ -512,7 +448,6 @@ class AIGameChallenge {
         this.showShowcase();
         
         // 最終データを保存
-        await this.saveSessionData();
         
         this.showNotification('制作時間終了！完成したゲームをご覧ください！', 'info');
         
@@ -669,7 +604,6 @@ class AIGameChallenge {
                 </div>
                 <div class="game-card-meta">
                     <div class="game-card-participant">👤 ${game.participant} | 📁 ${game.fileName} (${fileSizeKB}KB)</div>
-                    <div class="game-card-session">🎯 ${game.sessionTheme} | 📂 ${game.sessionName}</div>
                 </div>
                 <div class="game-card-prompt">${game.prompt}</div>
             `;
@@ -682,11 +616,19 @@ class AIGameChallenge {
     }
     
     // ゲームギャラリーを隠す
+    showGameGallery() {
+        const gallerySection = document.getElementById('game-gallery-section');
+        gallerySection.style.display = 'block';
+
+        // ギャラリーを表示したら自動的にゲームを読み込む
+        this.loadGameGallery();
+    }
+
     hideGameGallery() {
         const gallerySection = document.getElementById('game-gallery-section');
         const loadBtn = document.getElementById('load-gallery');
         const hideBtn = document.getElementById('hide-gallery');
-        
+
         gallerySection.style.display = 'none';
         loadBtn.style.display = 'inline-block';
         hideBtn.style.display = 'none';
