@@ -77,8 +77,33 @@
             border-bottom: none;
         }
 
-        .ranking-item:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .ranking-item.clickable {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ranking-item.clickable:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .ranking-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 100px;
+        }
+
+        .view-game-hint {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        .ranking-item.clickable:hover .view-game-hint {
+            color: #667eea;
+            font-weight: 600;
         }
 
         .ranking-position {
@@ -278,7 +303,7 @@
                                  `${ranking.rank}位`;
 
                     return `
-                        <div class="ranking-item">
+                        <div class="ranking-item clickable" data-game-id="${ranking.gameId}" onclick="window.location.href='/gallery.html?highlight=${ranking.gameId}'">
                             <div class="ranking-position ${rankClass}">
                                 ${medal}
                             </div>
@@ -289,6 +314,9 @@
                             <div class="ranking-score">
                                 <div class="score-display">${ranking.totalScore}</div>
                                 <div class="ranking-date">${formatDate}</div>
+                            </div>
+                            <div class="ranking-action">
+                                <span class="view-game-hint">🎮 ゲームを見る</span>
                             </div>
                         </div>
                     `;

@@ -270,11 +270,11 @@
 
         .modal-content {
             background-color: white;
-            margin: 5% auto;
+            margin: 2% auto;
             border-radius: 10px;
-            width: 90%;
-            max-width: 800px;
-            height: 80%;
+            width: 95%;
+            max-width: 1000px;
+            height: 90%;
             position: relative;
             overflow: hidden;
         }
@@ -282,10 +282,11 @@
         .modal-header {
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
-            padding: 20px;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            min-height: 60px;
         }
 
         .modal-title {
@@ -313,7 +314,8 @@
         }
 
         .modal-body {
-            height: calc(100% - 80px);
+            height: calc(100% - 60px);
+            overflow: hidden;
         }
 
         .game-iframe {
@@ -401,6 +403,19 @@
             font-size: 1.1em;
         }
 
+        /* ハイライト効果 */
+        .game-card.highlighted {
+            animation: highlightPulse 0.8s ease-in-out 3;
+            border: 3px solid #667eea !important;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5) !important;
+        }
+
+        @keyframes highlightPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
         .score-pending {
             color: #999;
             font-style: italic;
@@ -470,7 +485,31 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadGallery();
             loadStats();
+            checkForHighlight();
         });
+
+        // URLパラメータからハイライト対象を取得
+        function checkForHighlight() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const highlightGameId = urlParams.get('highlight');
+            if (highlightGameId) {
+                setTimeout(() => {
+                    highlightGame(highlightGameId);
+                }, 1000); // ゲーム読み込み完了を待つ
+            }
+        }
+
+        // 特定のゲームをハイライト
+        function highlightGame(gameId) {
+            const gameCard = document.querySelector(`[data-game-id="${gameId}"]`);
+            if (gameCard) {
+                gameCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                gameCard.classList.add('highlighted');
+                setTimeout(() => {
+                    gameCard.classList.remove('highlighted');
+                }, 3000); // 3秒後にハイライト解除
+            }
+        }
 
         // ゲーム一覧を読み込み
         async function loadGallery() {
@@ -521,21 +560,30 @@
             const container = document.getElementById('games-container');
             container.innerHTML = '';
 
-            // 各ゲームのスコアを並行取得
-            const gamesWithScores = await Promise.all(
-                games.map(async (game) => {
-                    try {
-                        const response = await fetch(`${API_BASE_URL}/api/games/${game.fileName}/score`);
-                        if (response.ok) {
-                            const scoreData = await response.json();
-                            return { ...game, scoreData: scoreData.success ? scoreData.score : null };
-                        }
-                    } catch (error) {
-                        console.log(`No score found for ${game.fileName}`);
-                    }
-                    return { ...game, scoreData: null };
-                })
-            );
+            // ランキングデータからスコア情報を取得
+            let rankingData = [];
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/rankings`);
+                const data = await response.json();
+                if (data.success && data.rankings) {
+                    rankingData = data.rankings;
+                }
+            } catch (error) {
+                console.log('Failed to load ranking data for scores');
+            }
+
+            // ゲームにスコア情報をマッチング
+            const gamesWithScores = games.map(game => {
+                const matchingRanking = rankingData.find(ranking => ranking.gameId === game.fileName);
+                return {
+                    ...game,
+                    scoreData: matchingRanking ? {
+                        totalScore: matchingRanking.totalScore,
+                        rank: matchingRanking.rank,
+                        participant: matchingRanking.participant
+                    } : null
+                };
+            });
 
             gamesWithScores.forEach(game => {
                 const gameCard = createGameCard(game);
@@ -547,6 +595,7 @@
         function createGameCard(game) {
             const card = document.createElement('div');
             card.className = 'game-card';
+            card.setAttribute('data-game-id', game.fileName);
 
             const date = new Date(game.createdAt).toLocaleDateString('ja-JP');
             const time = new Date(game.createdAt).toLocaleTimeString('ja-JP', { 
@@ -592,7 +641,7 @@
                     ${game.scoreData ? `
                     <div class="meta-row score-row">
                         <span class="meta-label">🏆 スコア:</span>
-                        <span class="meta-value score-value">${game.scoreData.totalScore}/1000</span>
+                        <span class="meta-value score-value">${game.scoreData.totalScore}/1000点 (${game.scoreData.rank}位)</span>
                     </div>
                     ` : `
                     <div class="meta-row score-row">
