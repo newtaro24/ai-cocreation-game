@@ -8,6 +8,7 @@ const aiService = require('./services/ai-service');
 // Routes
 const gameRoutes = require('./routes/game-routes');
 const statsRoutes = require('./routes/stats-routes');
+const scoringRoutes = require('./routes/scoring-routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ app.use('/data/games', express.static(path.join(__dirname, '../data', 'games')))
 app.use('/api/games', gameRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api', statsRoutes); // For health endpoint
+app.use('/api', scoringRoutes); // For scoring and rankings
 
 // ゲーム保存エンドポイント
 app.post('/api/games/save', (req, res) => {
@@ -78,6 +80,10 @@ app.listen(PORT, async () => {
     console.log('   - POST   /api/generate-game');
     console.log('   - POST   /api/games/save');
     console.log('   - GET    /api/games/all');
+    console.log('   - POST   /api/games/:gameId/score');
+    console.log('   - GET    /api/games/:gameId/score');
+    console.log('   - GET    /api/rankings');
+    console.log('   - GET    /api/scores/stats');
     console.log('   - GET    /api/stats');
     console.log('   - GET    /api/stats/health');
 });

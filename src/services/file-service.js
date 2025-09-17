@@ -191,6 +191,52 @@ ${html}`;
             avgFileSize: totalGames > 0 ? Math.round(totalFileSize / totalGames) : 0
         };
     }
+
+    /**
+     * スコアリング用ゲーム情報取得
+     */
+    getGameInfo(gameId) {
+        const gameFilePath = path.join(this.gamesDir, gameId);
+
+        if (!fs.existsSync(gameFilePath)) {
+            return null;
+        }
+
+        try {
+            const content = fs.readFileSync(gameFilePath, 'utf8');
+            const stats = fs.statSync(gameFilePath);
+
+            // HTMLコメントからメタデータを抽出
+            const participantMatch = content.match(/Participant: (.*)/);
+            const promptMatch = content.match(/Prompt: (.*)/);
+            const promptHistoryMatch = content.match(/PromptHistory: (.*)/);
+            const generatedMatch = content.match(/Generated: (.*)/);
+
+            // プロンプト履歴をJSONから復元
+            let promptHistory = [];
+            if (promptHistoryMatch && promptHistoryMatch[1]) {
+                try {
+                    promptHistory = JSON.parse(promptHistoryMatch[1]);
+                } catch (e) {
+                    promptHistory = [];
+                }
+            }
+
+            return {
+                gameId,
+                participant: participantMatch ? participantMatch[1] : 'Unknown',
+                prompt: promptMatch ? promptMatch[1] : 'Unknown',
+                promptHistory: promptHistory,
+                createdAt: generatedMatch ? generatedMatch[1] : stats.birthtime.toISOString(),
+                fileSize: stats.size,
+                htmlContent: content
+            };
+
+        } catch (error) {
+            console.error(`Error reading game file ${gameId}:`, error);
+            return null;
+        }
+    }
 }
 
 module.exports = new FileService();
