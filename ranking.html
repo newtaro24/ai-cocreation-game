@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ランキング | AI Co-creation Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* ランキング専用スタイル */
+        .ranking-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .ranking-header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .ranking-header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+        }
+
+        .ranking-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(15px);
+            padding: 20px;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            color: white;
+            min-width: 120px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .ranking-list {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+
+        .ranking-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .ranking-position {
+            min-width: 80px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .ranking-position.rank-1 {
+            color: #ffd700;
+        }
+        .ranking-position.rank-2 {
+            color: #c0c0c0;
+        }
+        .ranking-position.rank-3 {
+            color: #cd7f32;
+        }
+
+        .ranking-info {
+            flex: 1;
+            margin: 0 20px;
+        }
+
+        .ranking-player {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .ranking-theme {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .ranking-score {
+            min-width: 100px;
+            text-align: right;
+        }
+
+        .score-display {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .ranking-date {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-top: 4px;
+        }
+
+        .ranking-actions {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .empty-ranking {
+            text-align: center;
+            padding: 80px 20px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .empty-ranking .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .ranking-header h1 {
+                font-size: 2.5rem;
+            }
+
+            .ranking-stats {
+                gap: 20px;
+            }
+
+            .stat-item {
+                min-width: 100px;
+                padding: 16px;
+            }
+
+            .ranking-item {
+                padding: 16px;
+            }
+
+            .ranking-position {
+                min-width: 60px;
+                font-size: 1.3rem;
+            }
+
+            .ranking-info {
+                margin: 0 12px;
+            }
+
+            .score-display {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="ranking-container">
+            <div class="ranking-header">
+                <h1>🏆 ランキング</h1>
+                <p>AIゲーム生成チャレンジ トップランキング</p>
+            </div>
+
+            <div class="ranking-stats" id="ranking-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-games">-</div>
+                    <div class="stat-label">総ゲーム数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="average-score">-</div>
+                    <div class="stat-label">平均スコア</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="highest-score">-</div>
+                    <div class="stat-label">最高スコア</div>
+                </div>
+            </div>
+
+            <div class="ranking-list" id="ranking-list">
+                <!-- ランキングがここに動的に表示されます -->
+            </div>
+
+            <div class="ranking-actions">
+                <button class="btn btn-primary" onclick="location.href='/'">🎮 ゲームをプレイ</button>
+                <button class="btn btn-secondary" onclick="location.href='/gallery.html'">📱 ギャラリーを見る</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class RankingPage {
+            constructor() {
+                this.apiBaseUrl = `${window.location.protocol}//${window.location.host}`;
+                this.initializePage();
+            }
+
+            async initializePage() {
+                try {
+                    await this.loadStats();
+                    await this.loadRankings();
+                } catch (error) {
+                    console.error('Failed to load ranking page:', error);
+                    this.showError('ランキング情報の読み込みに失敗しました');
+                }
+            }
+
+            async loadStats() {
+                try {
+                    const response = await fetch(`${this.apiBaseUrl}/api/scores/stats`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        document.getElementById('total-games').textContent = data.stats.totalGames;
+                        document.getElementById('average-score').textContent = data.stats.averageScore;
+                        document.getElementById('highest-score').textContent = data.stats.highestScore;
+                    }
+                } catch (error) {
+                    console.error('Failed to load stats:', error);
+                }
+            }
+
+            async loadRankings() {
+                try {
+                    const response = await fetch(`${this.apiBaseUrl}/api/rankings`);
+                    const data = await response.json();
+
+                    if (data.success && data.rankings.length > 0) {
+                        this.renderRankings(data.rankings);
+                    } else {
+                        this.showEmptyRanking();
+                    }
+                } catch (error) {
+                    console.error('Failed to load rankings:', error);
+                    this.showError('ランキング情報の読み込みに失敗しました');
+                }
+            }
+
+            renderRankings(rankings) {
+                const container = document.getElementById('ranking-list');
+
+                const rankingHtml = rankings.map(ranking => {
+                    const date = new Date(ranking.createdAt);
+                    const formatDate = date.toLocaleDateString('ja-JP') + ' ' +
+                                     date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+
+                    const rankClass = ranking.rank <= 3 ? `rank-${ranking.rank}` : '';
+                    const medal = ranking.rank === 1 ? '🥇' :
+                                 ranking.rank === 2 ? '🥈' :
+                                 ranking.rank === 3 ? '🥉' :
+                                 `${ranking.rank}位`;
+
+                    return `
+                        <div class="ranking-item">
+                            <div class="ranking-position ${rankClass}">
+                                ${medal}
+                            </div>
+                            <div class="ranking-info">
+                                <div class="ranking-player">${this.escapeHtml(ranking.participant)}</div>
+                                <div class="ranking-theme">${this.escapeHtml(ranking.theme)}</div>
+                            </div>
+                            <div class="ranking-score">
+                                <div class="score-display">${ranking.totalScore}</div>
+                                <div class="ranking-date">${formatDate}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = rankingHtml;
+            }
+
+            showEmptyRanking() {
+                const container = document.getElementById('ranking-list');
+                container.innerHTML = `
+                    <div class="empty-ranking">
+                        <div class="empty-icon">🏆</div>
+                        <h3>まだランキングがありません</h3>
+                        <p>最初のゲームを作成して、ランキングに挑戦しましょう！</p>
+                        <button class="btn btn-primary" onclick="location.href='/'">🎮 ゲームを作る</button>
+                    </div>
+                `;
+            }
+
+            showError(message) {
+                const container = document.getElementById('ranking-list');
+                container.innerHTML = `
+                    <div class="empty-ranking">
+                        <div class="empty-icon">⚠️</div>
+                        <h3>エラーが発生しました</h3>
+                        <p>${message}</p>
+                        <button class="btn btn-primary" onclick="location.reload()">🔄 再読み込み</button>
+                    </div>
+                `;
+            }
+
+            escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+        }
+
+        // ページ読み込み時に初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            new RankingPage();
+        });
+    </script>
+</body>
+</html>

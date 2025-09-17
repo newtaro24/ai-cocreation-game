@@ -385,6 +385,26 @@
             color: #666;
             flex: 1;
         }
+
+        /* スコア表示スタイル */
+        .score-row {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 8px;
+            padding: 8px 12px !important;
+            margin: 8px 0;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .score-value {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .score-pending {
+            color: #999;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -467,7 +487,7 @@
                 const data = await response.json();
 
                 if (data.success && data.games.length > 0) {
-                    displayGames(data.games);
+                    await displayGames(data.games);
                     gamesContainer.style.display = 'grid';
                 } else {
                     emptyState.style.display = 'block';
@@ -497,11 +517,27 @@
         }
 
         // ゲーム一覧を表示
-        function displayGames(games) {
+        async function displayGames(games) {
             const container = document.getElementById('games-container');
             container.innerHTML = '';
 
-            games.forEach(game => {
+            // 各ゲームのスコアを並行取得
+            const gamesWithScores = await Promise.all(
+                games.map(async (game) => {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/api/games/${game.fileName}/score`);
+                        if (response.ok) {
+                            const scoreData = await response.json();
+                            return { ...game, scoreData: scoreData.success ? scoreData.score : null };
+                        }
+                    } catch (error) {
+                        console.log(`No score found for ${game.fileName}`);
+                    }
+                    return { ...game, scoreData: null };
+                })
+            );
+
+            gamesWithScores.forEach(game => {
                 const gameCard = createGameCard(game);
                 container.appendChild(gameCard);
             });
@@ -553,6 +589,17 @@
                         <span class="meta-label">📁 ファイル:</span>
                         <span class="meta-value">${game.fileName} (${fileSizeKB}KB)</span>
                     </div>
+                    ${game.scoreData ? `
+                    <div class="meta-row score-row">
+                        <span class="meta-label">🏆 スコア:</span>
+                        <span class="meta-value score-value">${game.scoreData.totalScore}/1000</span>
+                    </div>
+                    ` : `
+                    <div class="meta-row score-row">
+                        <span class="meta-label">🏆 スコア:</span>
+                        <span class="meta-value score-pending">未採点</span>
+                    </div>
+                    `}
                 </div>
 
                 <div class="prompt-history-section">

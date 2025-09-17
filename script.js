@@ -54,6 +54,7 @@ class AIGameChallenge {
         document.getElementById('complete-game').addEventListener('click', () => this.completeChallenge());
         document.getElementById('submit-prompt').addEventListener('click', () => this.submitPrompt());
         document.getElementById('view-gallery').addEventListener('click', () => window.location.href = '/gallery.html');
+        document.getElementById('view-ranking').addEventListener('click', () => window.location.href = '/ranking.html');
 
         document.getElementById('prompt-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.metaKey) {
@@ -176,7 +177,163 @@ class AIGameChallenge {
             return result;
         } catch (error) {
             console.error('Failed to save game file:', error);
+            return null;
         }
+    }
+
+    // スコアリング開始
+    async startScoring(gameId) {
+        try {
+            // スコアリング中の表示
+            this.showScoringInProgress();
+
+            // スコアリング実行
+            const response = await fetch(`${this.apiBaseUrl}/api/games/${gameId}/score`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    theme: this.currentThemeObj,
+                    promptHistory: this.prompts
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('スコアリング実行エラー');
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showScoreResult(result.score);
+            } else {
+                this.showScoringError(result.error);
+            }
+
+        } catch (error) {
+            console.error('Scoring error:', error);
+            this.showScoringError('スコアリング中にエラーが発生しました');
+        }
+    }
+
+    // スコアリング中表示
+    showScoringInProgress() {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `
+            <div class="scoring-progress">
+                <div class="scoring-icon">🤖</div>
+                <h3>AIが採点中...</h3>
+                <div class="scoring-loader">
+                    <div class="loader-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+                <p>ゲームの品質を評価しています。しばらくお待ちください。</p>
+            </div>
+        `;
+
+        // スコアリング進行表示にスクロール
+        setTimeout(() => {
+            document.getElementById('result').scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }, 300);
+    }
+
+    // スコア結果表示
+    showScoreResult(scoreData) {
+        const resultDiv = document.getElementById('result');
+
+        // 詳細スコア表示
+        const detailScoreHtml = Object.entries(scoreData.detailScores).map(([key, score]) => {
+            const labels = {
+                requiredFeatures: '必須機能実装度',
+                completeness: 'ゲーム完成度',
+                uiUx: 'UI/UX品質',
+                playability: 'プレイアビリティ',
+                creativity: '創造性'
+            };
+            return `
+                <div class="score-detail-item">
+                    <span class="score-label">${labels[key] || key}</span>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${score * 5}%"></div>
+                    </div>
+                    <span class="score-value">${score}/20</span>
+                </div>
+            `;
+        }).join('');
+
+        resultDiv.innerHTML = `
+            <div class="score-result">
+                <div class="score-header">
+                    <div class="score-icon">🏆</div>
+                    <h3>スコア発表！</h3>
+                </div>
+
+                <div class="total-score">
+                    <div class="score-circle">
+                        <span class="score-number">${scoreData.totalScore}</span>
+                        <span class="score-label">/1000点</span>
+                    </div>
+                </div>
+
+                <div class="score-details">
+                    <h4>詳細スコア</h4>
+                    ${detailScoreHtml}
+                </div>
+
+                <div class="ai-comment">
+                    <h4>🤖 AIコメント</h4>
+                    <p>${scoreData.comment}</p>
+                </div>
+
+                <div class="score-actions">
+                    <button id="view-rankings" class="btn btn-primary">🏅 ランキングを見る</button>
+                    <button id="play-again" class="btn btn-secondary">🎮 もう一度プレイ</button>
+                </div>
+            </div>
+        `;
+
+        // ボタンイベント設定
+        document.getElementById('view-rankings').addEventListener('click', () => {
+            window.location.href = '/ranking.html';
+        });
+
+        document.getElementById('play-again').addEventListener('click', () => {
+            this.resetChallenge();
+            this.showStartModal();
+        });
+
+        // 結果表示にスクロール
+        setTimeout(() => {
+            document.getElementById('result').scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }, 300);
+    }
+
+    // スコアリングエラー表示
+    showScoringError(errorMessage) {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `
+            <div class="scoring-error">
+                <div class="error-icon">⚠️</div>
+                <h3>スコアリングエラー</h3>
+                <p>${errorMessage}</p>
+                <div class="error-actions">
+                    <button id="try-scoring-again" class="btn btn-primary">再試行</button>
+                    <button id="skip-scoring" class="btn btn-secondary">スコアリングをスキップ</button>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('skip-scoring').addEventListener('click', () => {
+            this.showNotification('スコアリングをスキップしました', 'info');
+        });
     }
 
 
@@ -454,9 +611,11 @@ class AIGameChallenge {
         document.getElementById('complete-game').style.display = 'none';
 
         // 最終ゲームを保存
+        let gameId = null;
         if (this.latestGameHtml) {
             const lastParticipant = this.prompts.length > 0 ? this.prompts[this.prompts.length - 1].participant : 'Unknown';
-            await this.saveGameFile(this.latestGameHtml, this.getLatestPrompt(), lastParticipant);
+            const saveResult = await this.saveGameFile(this.latestGameHtml, this.getLatestPrompt(), lastParticipant);
+            gameId = saveResult?.fileName;
         }
 
         this.showNotification('制作時間終了！ゲームが完成しました！', 'success');
@@ -465,6 +624,11 @@ class AIGameChallenge {
         setTimeout(() => {
             document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
         }, 500);
+
+        // スコアリング開始（非同期で実行）
+        if (gameId) {
+            setTimeout(() => this.startScoring(gameId), 1000);
+        }
     }
     
     

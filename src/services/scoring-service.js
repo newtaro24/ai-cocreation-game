@@ -96,36 +96,51 @@ class ScoringService {
      * スコアリング用プロンプト生成
      */
     buildScoringPrompt(theme, htmlContent, promptHistory) {
+        // テーマが文字列の場合の処理
+        const themeInfo = typeof theme === 'string' ? {
+            title: theme,
+            description: `${theme}に関連するWebゲーム`,
+            requirements: ['ゲームとして機能する', '適切なUI表示', 'ユーザー操作可能']
+        } : theme;
+
+        // プロンプト履歴の処理（文字列配列にも対応）
+        const historyText = Array.isArray(promptHistory)
+            ? promptHistory.map((p, i) => {
+                const prompt = typeof p === 'string' ? p : p.prompt;
+                return `${i + 1}. ${prompt}`;
+            }).join('\n')
+            : `1. ${promptHistory || '初回プロンプト'}`;
+
         return `あなたは優秀なゲーム評価者です。以下のWebゲームを客観的に評価してください。
 
 【お題】
-タイトル: ${theme.title}
-説明: ${theme.description}
-必須機能: ${theme.requirements.join(', ')}
+タイトル: ${themeInfo.title}
+説明: ${themeInfo.description}
+必須機能: ${themeInfo.requirements.join(', ')}
 
 【プロンプト履歴】
-${promptHistory.map((p, i) => `${i + 1}. ${p.prompt}`).join('\n')}
+${historyText}
 
 【生成されたHTML】
 ${htmlContent}
 
-【評価基準】（各20点満点）
-1. 必須機能実装度: 指定された必須機能がすべて実装されているか
-2. ゲーム完成度: ゲームとして正常に動作し、完成しているか
-3. UI/UX品質: 見た目の美しさと操作性の良さ
-4. プレイアビリティ: 実際に遊べて面白いか
-5. 創造性: 独自のアイデアや工夫があるか
+【評価基準】（各200点満点、総合1000点満点）
+1. 必須機能実装度: 指定された必須機能がすべて実装されているか（0-200点）
+2. ゲーム完成度: ゲームとして正常に動作し、完成しているか（0-200点）
+3. UI/UX品質: 見た目の美しさと操作性の良さ（0-200点）
+4. プレイアビリティ: 実際に遊べて面白いか（0-200点）
+5. 創造性: 独自のアイデアや工夫があるか（0-200点）
 
 以下のJSON形式で回答してください：
 {
   "detailScores": {
-    "requiredFeatures": 18,
-    "completeness": 16,
-    "uiUx": 15,
-    "playability": 17,
-    "creativity": 14
+    "requiredFeatures": 180,
+    "completeness": 160,
+    "uiUx": 150,
+    "playability": 170,
+    "creativity": 140
   },
-  "totalScore": 80,
+  "totalScore": 800,
   "comment": "具体的で建設的な評価コメント（100-200文字程度）"
 }
 

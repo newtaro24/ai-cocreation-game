@@ -25,10 +25,15 @@
                     <span id="current-player" class="player-name">待機中...</span>
                 </div>
                 <div class="game-actions">
-                    <button id="start-game" class="btn btn-primary">チャレンジ開始</button>
-                    <button id="stop-game" class="btn btn-danger" style="display: none;">チャレンジ中断</button>
-                    <button id="complete-game" class="btn btn-success" style="display: none;">今すぐ完了</button>
-                    <button id="view-gallery" class="btn btn-gallery">🎮 過去のゲームを見る</button>
+                    <div class="main-action-container">
+                        <button id="start-game" class="btn btn-primary btn-main-action">チャレンジ<br>開始</button>
+                        <button id="stop-game" class="btn btn-danger btn-main-action" style="display: none;">チャレンジ中断</button>
+                        <button id="complete-game" class="btn btn-success btn-main-action" style="display: none;">今すぐ完了</button>
+                    </div>
+                    <div class="secondary-actions">
+                        <button id="view-gallery" class="btn btn-gallery btn-secondary">🎮 過去のゲームを見る</button>
+                        <button id="view-ranking" class="btn btn-ranking btn-secondary">🏆 ランキングを見る</button>
+                    </div>
                 </div>
             </div>
         </div>
