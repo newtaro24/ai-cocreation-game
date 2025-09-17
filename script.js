@@ -53,6 +53,7 @@ class AIGameChallenge {
         document.getElementById('stop-game').addEventListener('click', () => this.stopChallenge());
         document.getElementById('complete-game').addEventListener('click', () => this.completeChallenge());
         document.getElementById('submit-prompt').addEventListener('click', () => this.submitPrompt());
+        document.getElementById('view-rules').addEventListener('click', () => window.location.href = '/rules.html');
         document.getElementById('view-gallery').addEventListener('click', () => window.location.href = '/gallery.html');
         document.getElementById('view-ranking').addEventListener('click', () => window.location.href = '/ranking.html');
 
@@ -79,12 +80,18 @@ class AIGameChallenge {
         // 確認処理
         const handleConfirm = () => {
             const participantsText = input.value.trim();
-            
+            const consentCheckbox = document.getElementById('public-consent');
+
             if (participantsText.length === 0) {
                 this.showStartError('参加者名を入力してください');
                 return;
             }
-            
+
+            if (!consentCheckbox.checked) {
+                this.showStartError('公開同意にチェックを入れてください');
+                return;
+            }
+
             // 単一参加者の名前をチェック
             const name = participantsText;
 

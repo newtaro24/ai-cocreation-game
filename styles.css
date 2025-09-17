@@ -249,6 +249,7 @@ h1 {
 .theme-display .theme-requirements ul {
     margin: 8px 0 0 16px;
     padding: 0;
+    list-style-type: none;
 }
 
 .theme-display .theme-requirements li {
@@ -414,12 +415,12 @@ h1 {
 .btn-submit {
     background: rgba(74, 144, 226, 0.8);
     border-color: rgba(74, 144, 226, 1);
-    color: white;
+    color: white; 
     padding: 12px 32px;
     font-weight: 500;
     font-size: 0.875rem;
     flex: 1;
-    min-height: 40px;
+    min-height: 64px;
 }
 
 .btn-submit:hover {
@@ -496,6 +497,17 @@ h1 {
     box-shadow: 0 8px 25px rgba(240, 147, 251, 0.3);
 }
 
+.btn-rules {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+.btn-rules:hover {
+    background: linear-gradient(135deg, #764ba2, #667eea);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
 .game-actions {
     display: flex;
     flex-direction: column;
@@ -519,10 +531,10 @@ h1 {
 }
 
 .btn-main-action {
-    min-height: 84px;
-    min-width: 160px;
-    width: 160px;
-    height: 84px;
+    min-height: 64px;
+    min-width: 240px;
+    width: 240px;
+    height: 64px;
     font-size: 1.1rem;
     font-weight: 600;
     padding: 20px 24px;
@@ -533,7 +545,7 @@ h1 {
     min-width: 140px;
     font-size: 0.8rem;
     padding: 10px 16px;
-    opacity: 0.95;
+    opacity: 1;
     transition: all 0.3s ease;
 }
 
@@ -1174,6 +1186,75 @@ footer {
     font-size: 12px;
     margin-top: 6px;
     font-style: italic;
+}
+
+.consent-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.consent-checkbox {
+    display: flex;
+    align-items: flex-start;
+    cursor: pointer;
+    gap: 12px;
+}
+
+.consent-input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: relative;
+    height: 18px;
+    width: 18px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: all 0.3s ease;
+}
+
+.consent-checkbox:hover .checkmark {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.consent-input:checked ~ .checkmark {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 5px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.consent-input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.consent-text {
+    color: #ffffff;
+    font-size: 13px;
+    line-height: 1.4;
+    flex: 1;
 }
 
 /* お題表示エリアのレスポンシブ */

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ゲームルール | AI Co-creation Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* ルール説明専用スタイル */
+        .rules-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .rules-header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .rules-header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .rules-content {
+            display: grid;
+            gap: 30px;
+        }
+
+        .rule-section {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+        }
+
+        .rule-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rule-section h3 {
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            color: #ffffff;
+        }
+
+        .rule-section p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 15px;
+            opacity: 1;
+            color: #ffffff;
+        }
+
+        .rule-section ul, .rule-section ol {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        .rule-section li {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            opacity: 1;
+            color: #ffffff;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.2), rgba(102, 126, 234, 0.2));
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 4px solid #f093fb;
+            margin: 20px 0;
+        }
+
+        .score-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .score-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .score-item h4 {
+            color: #ffffff;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .score-item .points {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .score-item p {
+            font-size: 0.95rem;
+            opacity: 1;
+            color: #ffffff;
+        }
+
+        .rules-actions {
+            text-align: center;
+            margin-top: 40px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .icon {
+            font-size: 1.5rem;
+            margin-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .rules-header h1 {
+                font-size: 2.5rem;
+            }
+
+            .rule-section {
+                padding: 20px;
+            }
+
+            .rule-section h2 {
+                font-size: 1.5rem;
+            }
+
+            .score-breakdown {
+                grid-template-columns: 1fr;
+            }
+
+            .rules-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="rules-container">
+            <div class="rules-header">
+                <h1>📋 ゲームルール</h1>
+                <p>AIゲーム生成チャレンジの遊び方</p>
+            </div>
+
+            <div class="rules-content">
+                <!-- ゲーム概要 -->
+                <div class="rule-section">
+                    <h2><span class="icon">🎮</span>ゲーム概要</h2>
+                    <p>AIと協力してオリジナルのWebゲームを作成するチャレンジです。あなたのアイデアとプロンプトを使って、5分間でクオリティの高いゲームを完成させましょう！</p>
+
+                    <div class="highlight">
+                        <strong>🎯 目標：</strong> 制限時間内に、お題に沿った面白くて完成度の高いゲームを作成する
+                    </div>
+                </div>
+
+                <!-- ゲームの流れ -->
+                <div class="rule-section">
+                    <h2><span class="icon">📝</span>ゲームの流れ</h2>
+
+                    <h3>1. チャレンジ開始</h3>
+                    <ul>
+                        <li>ニックネームを入力してチャレンジを開始</li>
+                        <li>ランダムでお題が決定されます</li>
+                        <li>5分間のタイマーがスタート</li>
+                    </ul>
+
+                    <h3>2. ゲーム作成</h3>
+                    <ul>
+                        <li>お題の要求仕様を確認</li>
+                        <li>AIへの指示を日本語で入力</li>
+                        <li>生成されたゲームを確認・テスト</li>
+                        <li>改善したい点があれば追加の指示を送信</li>
+                    </ul>
+
+                    <h3>3. 完成・評価</h3>
+                    <ul>
+                        <li>時間終了またはゲーム完成</li>
+                        <li>AIによる自動スコアリング</li>
+                        <li>結果発表とランキング登録</li>
+                    </ul>
+                </div>
+
+                <!-- 評価基準 -->
+                <div class="rule-section">
+                    <h2><span class="icon">🏆</span>評価基準（総合1000点満点）</h2>
+                    <p>作成されたゲームは以下の5つの観点からAIが自動評価します：</p>
+
+                    <div class="score-breakdown">
+                        <div class="score-item">
+                            <h4>機能実装度</h4>
+                            <div class="points">200点</div>
+                            <p>お題に関連した機能が実装されているか</p>
+                        </div>
+                        <div class="score-item">
+                            <h4>ゲーム完成度</h4>
+                            <div class="points">200点</div>
+                            <p>ゲームとして正常に動作し、完成しているか</p>
+                        </div>
+                        <div class="score-item">
+                            <h4>UI/UX品質</h4>
+                            <div class="points">200点</div>
+                            <p>見た目の美しさと操作性の良さ</p>
+                        </div>
+                        <div class="score-item">
+                            <h4>プレイアビリティ</h4>
+                            <div class="points">200点</div>
+                            <p>実際に遊べて面白いか</p>
+                        </div>
+                        <div class="score-item">
+                            <h4>創造性</h4>
+                            <div class="points">200点</div>
+                            <p>独自のアイデアや工夫があるか</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- コツとヒント -->
+                <div class="rule-section">
+                    <h2><span class="icon">💡</span>成功のコツ</h2>
+
+                    <h3>効果的なプロンプトのコツ</h3>
+                    <ul>
+                        <li><strong>具体的に：</strong> 「もっと面白く」より「スコア表示を大きく、効果音を追加」</li>
+                        <li><strong>段階的に：</strong> 一度にすべて要求せず、一つずつ改善</li>
+                        <li><strong>視覚的に：</strong> 色、サイズ、配置などの見た目も重要</li>
+                        <li><strong>ユーザー体験を意識：</strong> 「わかりやすい操作方法」「結果画面の追加」など</li>
+                    </ul>
+                    <div class="highlight">
+                        <strong>⏰ 時間管理：</strong> 最初の2分で基本機能、残り3分で改善・装飾に集中すると効果的です
+                    </div>
+                </div>
+
+                <!-- 注意事項 -->
+                <div class="rule-section">
+                    <h2><span class="icon">⚠️</span>注意事項</h2>
+                    <ul>
+                        <li>作成されたゲームは、イベント期間中ブースにて他の参加者も閲覧できます</li>
+                        <li>不適切な内容や他者を不快にさせる内容は控えてください</li>
+                        <li>弊社広報SNSアカウント等において作成されたゲームやニックネーム等が公開される場合があります<br/>予め個人情報やプライバシーに関わる内容は含めないでください</li>
+                        <li>AI生成には時間がかかる場合があります（通常10-30秒）</li>
+                        <li>スコアリングには数分かかる場合があります</li>
+                        <li>技術的な問題でゲーム生成に失敗する場合があります</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="rules-actions">
+                <button class="btn btn-primary" onclick="location.href='/'">🚀 チャレンジを始める</button>
+                <button class="btn btn-secondary" onclick="location.href='/gallery.html'">🎮 過去のゲームを見る</button>
+                <button class="btn btn-ranking" onclick="location.href='/ranking.html'">🏆 ランキングを見る</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

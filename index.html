@@ -26,11 +26,12 @@
                 </div>
                 <div class="game-actions">
                     <div class="main-action-container">
-                        <button id="start-game" class="btn btn-primary btn-main-action">チャレンジ<br>開始</button>
+                        <button id="start-game" class="btn btn-primary btn-main-action">チャレンジ開始！</button>
                         <button id="stop-game" class="btn btn-danger btn-main-action" style="display: none;">チャレンジ中断</button>
                         <button id="complete-game" class="btn btn-success btn-main-action" style="display: none;">今すぐ完了</button>
                     </div>
                     <div class="secondary-actions">
+                        <button id="view-rules" class="btn btn-rules btn-secondary">📋 ルールを見る</button>
                         <button id="view-gallery" class="btn btn-gallery btn-secondary">🎮 過去のゲームを見る</button>
                         <button id="view-ranking" class="btn btn-ranking btn-secondary">🏆 ランキングを見る</button>
                     </div>
@@ -118,7 +119,19 @@
                 <input type="text" id="participants-input" class="modal-input" placeholder="例: commune taro" maxlength="50">
                 <div class="modal-hint">スコアがランキングに反映された際に表示されます</div>
                 <div class="modal-hint">個人情報や公序良俗に反する用語が含まれるニックネームはなるべく避けてください</div>
-                <div class="modal-hint">ランキングの結果等を、個人を特定できない状態にて当社広報SNSアカウントにより投稿する可能性があります</div>
+
+                <div class="consent-section">
+                    <label class="consent-checkbox">
+                        <input type="checkbox" id="public-consent" class="consent-input">
+                        <span class="checkmark"></span>
+                        <span class="consent-text">
+                            作成したゲームがギャラリーで公開されること、および
+                            ランキング結果等を個人が特定できない状態で
+                            当社広報SNSアカウントにより投稿される可能性があることに同意します
+                        </span>
+                    </label>
+                </div>
+
                 <div class="modal-error" id="start-error" style="display: none;"></div>
             </div>
             <div class="modal-footer">
