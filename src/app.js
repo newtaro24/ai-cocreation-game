@@ -7,7 +7,6 @@ const aiService = require('./services/ai-service');
 
 // Routes
 const gameRoutes = require('./routes/game-routes');
-const sessionRoutes = require('./routes/session-routes');
 const statsRoutes = require('./routes/stats-routes');
 
 const app = express();
@@ -19,30 +18,28 @@ app.use(express.json({ limit: '10mb' }));
 
 // Static files - serve from parent directory
 app.use(express.static(path.join(__dirname, '..')));
-app.use('/data/sessions', express.static(path.join(__dirname, '../data', 'sessions')));
+app.use('/data/games', express.static(path.join(__dirname, '../data', 'games')));
 
 // API Routes
-app.use('/api/sessions', sessionRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api', statsRoutes); // For health endpoint
 
-// セッション内ゲーム関連のルート  
-app.post('/api/sessions/:sessionId/games', (req, res) => {
-    const { sessionId } = req.params;
-    const { html, prompt, participant, gameIndex } = req.body;
-    
+// ゲーム保存エンドポイント
+app.post('/api/games/save', (req, res) => {
+    const { html, prompt, participant } = req.body;
+
     const fileService = require('./services/file-service');
-    
+
     try {
-        const result = fileService.saveGameFile(sessionId, {
-            html, prompt, participant, gameIndex
+        const result = fileService.saveGameFile({
+            html, prompt, participant
         });
-        
-        console.log(`Game saved: ${result.fileName} in session ${sessionId}`);
-        
-        res.json({ 
-            success: true, 
+
+        console.log(`Game saved: ${result.fileName}`);
+
+        res.json({
+            success: true,
             fileName: result.fileName,
             filePath: result.filePath
         });
@@ -79,12 +76,7 @@ app.listen(PORT, async () => {
     console.log('🎮 AI Co-creation Game Server Ready!');
     console.log('📊 API Endpoints:');
     console.log('   - POST   /api/generate-game');
-    console.log('   - GET    /api/sessions');
-    console.log('   - POST   /api/sessions');
-    console.log('   - GET    /api/sessions/:id');
-    console.log('   - PUT    /api/sessions/:id');
-    console.log('   - DELETE /api/sessions/:id');
-    console.log('   - POST   /api/sessions/:id/games');
+    console.log('   - POST   /api/games/save');
     console.log('   - GET    /api/games/all');
     console.log('   - GET    /api/stats');
     console.log('   - GET    /api/stats/health');

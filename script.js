@@ -5,29 +5,45 @@ class AIGameChallenge {
         this.timerInterval = null;
         this.currentTheme = '「5秒で遊べるミニゲーム」を作ろう！';
         this.participants = [];
-        this.currentParticipantIndex = 0;
         this.prompts = [];
         this.gameHistory = [];
         this.apiBaseUrl = `http://localhost:${window.location.port || '3000'}`;
         this.currentSessionId = null;
-        this.stats = {
-            totalPrompts: 0,
-            totalParticipants: 0,
-            gamesCreated: 0
-        };
         
         this.themes = [
-            '「5秒で遊べるミニゲーム」を作ろう！',
-            '「一番シンプルなパズルゲーム」を作ろう！',
-            '「反射神経を試すゲーム」を作ろう！',
-            '「運だけで勝負するゲーム」を作ろう！',
-            '「音を使ったリズムゲーム」を作ろう！',
-            '「色を使った記憶ゲーム」を作ろう！',
-            '「数字を使った計算ゲーム」を作ろう！'
+            {
+                title: '「クリック連打ゲーム」を作ろう！',
+                requirements: ['クリック可能なボタン', '5秒のタイマー', 'クリック数カウント表示', '結果画面表示'],
+                description: '5秒間でできるだけ多くクリックして競うゲーム'
+            },
+            {
+                title: '「色当てクイズゲーム」を作ろう！',
+                requirements: ['ランダム色表示', '4つの選択肢', '正答判定機能', 'スコア表示'],
+                description: '表示された色の名前を選択肢から選ぶクイズゲーム'
+            },
+            {
+                title: '「反射神経測定ゲーム」を作ろう！',
+                requirements: ['ランダムタイミング表示', 'クリック反応時間測定', '結果評価機能', 'もう一度プレイボタン'],
+                description: '画面が変化したらすぐクリック！反応速度を競うゲーム'
+            },
+            {
+                title: '「おみくじゲーム」を作ろう！',
+                requirements: ['おみくじボタン', 'ランダム結果生成', '運勢表示', 'もう一度引くボタン'],
+                description: '運試し！大吉から凶まで、今日の運勢を占うゲーム'
+            },
+            {
+                title: '「記憶力テストゲーム」を作ろう！',
+                requirements: ['パターン表示機能', 'ユーザー入力機能', '正誤判定', 'レベル進行システム'],
+                description: '表示されたパターンを記憶して再現する記憶力ゲーム'
+            },
+            {
+                title: '「数字足し算ゲーム」を作ろう！',
+                requirements: ['ランダム計算問題生成', '回答入力フォーム', '正答判定', '問題数カウント'],
+                description: '制限時間内にできるだけ多くの計算問題を解くゲーム'
+            }
         ];
         
         this.initializeEventListeners();
-        this.updateStats();
         this.initializeGallery();
     }
 
@@ -37,7 +53,6 @@ class AIGameChallenge {
         document.getElementById('stop-game').addEventListener('click', () => this.stopChallenge());
         document.getElementById('complete-game').addEventListener('click', () => this.completeChallenge());
         document.getElementById('submit-prompt').addEventListener('click', () => this.submitPrompt());
-        document.getElementById('new-challenge').addEventListener('click', () => this.resetChallenge());
         document.getElementById('view-gallery').addEventListener('click', () => window.location.href = '/gallery.html');
 
         document.getElementById('prompt-input').addEventListener('keydown', (e) => {
@@ -69,36 +84,22 @@ class AIGameChallenge {
                 return;
             }
             
-            // カンマ区切りで参加者を解析
-            const names = participantsText.split(',').map(name => name.trim()).filter(name => name.length > 0);
-            
-            if (names.length === 0) {
-                this.showStartError('有効な参加者名を入力してください');
+            // 単一参加者の名前をチェック
+            const name = participantsText;
+
+            if (name.length > 50) {
+                this.showStartError('名前は50文字以内で入力してください');
                 return;
             }
-            
-            if (names.length > 10) {
-                this.showStartError('参加者は10人まで登録できます');
-                return;
-            }
-            
-            // 重複チェック
-            const duplicates = names.filter((name, index) => names.indexOf(name) !== index);
-            if (duplicates.length > 0) {
-                this.showStartError(`重複する参加者名があります: ${duplicates[0]}`);
-                return;
-            }
-            
-            // 参加者を登録
-            this.participants = names.map(name => ({
+
+            // 参加者を登録（単一参加者）
+            this.participants = [{
                 name: name,
                 prompts: [],
                 joinedAt: new Date()
-            }));
+            }];
             
-            this.stats.totalParticipants += names.length;
-            this.updateStats();
-            this.updateParticipantDisplay();
+                this.updateParticipantDisplay();
             this.hideStartModal();
             this.startChallenge();
         };
@@ -161,7 +162,8 @@ class AIGameChallenge {
                 body: JSON.stringify({
                     html: html,
                     prompt: prompt,
-                    participant: participant
+                    participant: participant,
+                    promptHistory: this.prompts
                 })
             });
 
@@ -180,26 +182,41 @@ class AIGameChallenge {
 
     startChallenge() {
         if (this.gameState !== 'waiting') return;
-        
+
         this.gameState = 'playing';
         this.timeRemaining = 300;
         this.selectRandomTheme();
-        
+
+        // お題エリアを表示
+        document.getElementById('theme-container').style.display = 'block';
+
         document.getElementById('start-game').style.display = 'none';
         document.getElementById('stop-game').style.display = 'inline-block';
         document.getElementById('complete-game').style.display = 'inline-block';
-        
+
         this.enableInputs();
         this.startTimer();
         this.updateCurrentParticipant();
-        
-        this.showNotification('チャレンジ開始！みんなで協力してゲームを作りましょう！', 'success');
+
+        this.showNotification('チャレンジ開始！ゲームを作りましょう！', 'success');
     }
     
     selectRandomTheme() {
         const randomIndex = Math.floor(Math.random() * this.themes.length);
-        this.currentTheme = this.themes[randomIndex];
-        document.getElementById('current-theme').textContent = this.currentTheme;
+        this.currentThemeObj = this.themes[randomIndex];
+        this.currentTheme = this.currentThemeObj.title; // 後方互換性のため
+
+        const themeElement = document.getElementById('current-theme');
+        themeElement.innerHTML = `
+            <div class="theme-title">${this.currentThemeObj.title}</div>
+            <div class="theme-description">${this.currentThemeObj.description}</div>
+            <div class="theme-requirements">
+                <strong>必須機能:</strong>
+                <ul>
+                    ${this.currentThemeObj.requirements.map(req => `<li>${req}</li>`).join('')}
+                </ul>
+            </div>
+        `;
     }
     
 
@@ -219,21 +236,11 @@ class AIGameChallenge {
     }
     
     updateParticipantDisplay() {
-        document.getElementById('participant-count').textContent = this.participants.length;
-        
-        if (this.participants.length > 0 && this.gameState === 'playing') {
-            this.updateCurrentParticipant();
-        }
-    }
-    
-    updateCurrentParticipant() {
-        if (this.participants.length === 0) {
+        if (this.participants.length > 0) {
+            document.getElementById('current-player').textContent = this.participants[0].name;
+        } else {
             document.getElementById('current-player').textContent = '待機中...';
-            return;
         }
-        
-        const currentParticipant = this.participants[this.currentParticipantIndex];
-        document.getElementById('current-player').textContent = currentParticipant.name;
     }
     
     async submitPrompt() {
@@ -241,14 +248,22 @@ class AIGameChallenge {
             this.showNotification('チャレンジが開始されていません', 'warning');
             return;
         }
-        
+
         if (this.participants.length === 0) {
             this.showNotification('参加者がいません', 'warning');
             return;
         }
-        
+
         const promptInput = document.getElementById('prompt-input');
         const prompt = promptInput.value.trim();
+
+        // ゲーム表示エリアにスクロール
+        setTimeout(() => {
+            document.getElementById('result').scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }, 100);
         
         // プロンプトの検証
         const validation = this.validatePrompt(prompt);
@@ -257,30 +272,25 @@ class AIGameChallenge {
             return;
         }
         
-        const currentParticipant = this.participants[this.currentParticipantIndex];
+        const participant = this.participants[0]; // 単一参加者を使用
         const promptData = {
-            participant: currentParticipant.name,
+            participant: participant.name,
             prompt: validation.sanitized, // サニタイズされたプロンプトを使用
             timestamp: new Date().toLocaleTimeString(),
             order: this.prompts.length + 1
         };
-        
+
         this.prompts.push(promptData);
-        currentParticipant.prompts.push(promptData);
-        
+        participant.prompts.push(promptData);
+
         this.addToHistory(promptData);
-        
-        // ゲーム生成（現在の参加者情報を保持してから次の参加者に移る）
-        await this.generateGameResult(validation.sanitized, currentParticipant.name);
-        
+
+        // ゲーム生成
+        await this.generateGameResult(validation.sanitized, participant.name);
+
         promptInput.value = '';
-        this.currentParticipantIndex = (this.currentParticipantIndex + 1) % this.participants.length;
-        this.updateCurrentParticipant();
-        
-        this.stats.totalPrompts++;
-        this.updateStats();
-        
-        this.showNotification(`${currentParticipant.name}さんのプロンプトを送信しました！`, 'info');
+
+        this.showNotification(`プロンプトを送信しました！`, 'info');
     }
     
     addToHistory(promptData) {
@@ -344,13 +354,11 @@ class AIGameChallenge {
                     participant: participantName  // 正しい参加者名を使用
                 });
                 
-                this.stats.gamesCreated++;
-                this.updateStats();
-                
+                        
                 // データを保存（従来の方式）
-                
-                // 新しい構造でもHTMLファイルを保存
-                await this.saveGameFile(data.html, prompt, participantName);
+
+                // 途中の成果物は保存せず、最新のHTMLを保持のみ
+                this.latestGameHtml = data.html;
             } else {
                 throw new Error('生成失敗');
             }
@@ -438,72 +446,41 @@ class AIGameChallenge {
     async endChallenge() {
         this.gameState = 'finished';
         clearInterval(this.timerInterval);
-        
+
         this.disableInputs();
         document.querySelector('.timer').classList.remove('pulse');
-        
+
         document.getElementById('stop-game').style.display = 'none';
         document.getElementById('complete-game').style.display = 'none';
-        
-        this.showShowcase();
-        
-        // 最終データを保存
-        
-        this.showNotification('制作時間終了！完成したゲームをご覧ください！', 'info');
-        
+
+        // 最終ゲームを保存
+        if (this.latestGameHtml) {
+            const lastParticipant = this.prompts.length > 0 ? this.prompts[this.prompts.length - 1].participant : 'Unknown';
+            await this.saveGameFile(this.latestGameHtml, this.getLatestPrompt(), lastParticipant);
+        }
+
+        this.showNotification('制作時間終了！ゲームが完成しました！', 'success');
+
+        // ゲーム表示エリアにフォーカス
         setTimeout(() => {
-            window.scrollTo({
-                top: document.getElementById('showcase-section').offsetTop,
-                behavior: 'smooth'
-            });
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
         }, 500);
     }
     
-    showShowcase() {
-        const showcaseSection = document.getElementById('showcase-section');
-        const finalResultContainer = document.getElementById('final-result');
-        const creationRecipeContainer = document.getElementById('creation-recipe');
-        if (this.gameHistory.length > 0) {
-            const latestGame = this.gameHistory[this.gameHistory.length - 1];
-            const iframe = document.createElement('iframe');
-            iframe.style.width = '100%';
-            iframe.style.height = '400px';
-            iframe.style.border = 'none';
-            iframe.style.borderRadius = '8px';
-            iframe.srcdoc = latestGame.html;
-            
-            finalResultContainer.innerHTML = '';
-            finalResultContainer.appendChild(iframe);
-        } else {
-            finalResultContainer.innerHTML = '<p>ゲームが生成されませんでした</p>';
-        }
-        creationRecipeContainer.innerHTML = '';
-        this.prompts.forEach((item, index) => {
-            const recipeItem = document.createElement('div');
-            recipeItem.className = 'recipe-item';
-            recipeItem.innerHTML = `
-                <strong>ステップ ${index + 1} (${item.participant}):</strong><br>
-                <em>${item.timestamp}</em><br>
-                ${item.prompt}
-            `;
-            creationRecipeContainer.appendChild(recipeItem);
-        });
-        
-        showcaseSection.style.display = 'block';
-    }
     
     
     
     resetChallenge() {
         this.gameState = 'waiting';
         this.timeRemaining = 300;
-        this.currentParticipantIndex = 0;
-        
+
+        // お題エリアを非表示
+        document.getElementById('theme-container').style.display = 'none';
+
         clearInterval(this.timerInterval);
         this.participants = [];
         this.prompts = [];
         this.gameHistory = [];
-        document.getElementById('participant-count').textContent = '0';
         document.getElementById('current-player').textContent = '待機中...';
         document.getElementById('history').innerHTML = '<p class="empty-message">まだプロンプトがありません</p>';
         document.getElementById('result').innerHTML = `
@@ -514,133 +491,24 @@ class AIGameChallenge {
             </div>
         `;
         document.getElementById('prompt-input').value = '';
-        
-        document.getElementById('showcase-section').style.display = 'none';
-        
+
         document.getElementById('start-game').disabled = false;
         document.getElementById('start-game').textContent = 'チャレンジ開始';
         
         this.updateTimerDisplay();
-        this.updateStats();
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
         this.showNotification('新しいチャレンジの準備完了！', 'success');
     }
-    
-    updateStats() {
-        document.getElementById('total-prompts').textContent = this.stats.totalPrompts;
-        document.getElementById('total-participants').textContent = this.stats.totalParticipants;
-        document.getElementById('games-created').textContent = this.stats.gamesCreated;
+
+    getLatestPrompt() {
+        return this.prompts.length > 0 ? this.prompts[this.prompts.length - 1].prompt : 'ゲーム作成';
     }
+
     
     // ギャラリー機能の初期化
     initializeGallery() {
-        const loadGalleryBtn = document.getElementById('load-gallery');
-        const hideGalleryBtn = document.getElementById('hide-gallery');
-        
-        loadGalleryBtn.addEventListener('click', () => this.loadGameGallery());
-        hideGalleryBtn.addEventListener('click', () => this.hideGameGallery());
-    }
-    
-    // ゲームギャラリーを読み込み
-    async loadGameGallery() {
-        const gallerySection = document.getElementById('game-gallery-section');
-        const galleryContent = document.getElementById('gallery-content');
-        const loadBtn = document.getElementById('load-gallery');
-        const hideBtn = document.getElementById('hide-gallery');
-        
-        // ローディング表示
-        galleryContent.innerHTML = '<div class="gallery-loading">🔄 ゲーム履歴を読み込み中...</div>';
-        gallerySection.style.display = 'block';
-        
-        try {
-            const response = await fetch(`${this.apiBaseUrl}/api/games/all`);
-            
-            if (!response.ok) {
-                throw new Error('ゲーム履歴の取得に失敗しました');
-            }
-            
-            const data = await response.json();
-            
-            if (data.success && data.games.length > 0) {
-                this.displayGameGallery(data.games);
-                loadBtn.style.display = 'none';
-                hideBtn.style.display = 'inline-block';
-            } else {
-                galleryContent.innerHTML = '<div class="gallery-empty">📝 まだゲームが作成されていません。<br>チャレンジを完了するとここに表示されます！</div>';
-            }
-            
-        } catch (error) {
-            console.error('Failed to load game gallery:', error);
-            galleryContent.innerHTML = '<div class="gallery-empty">❌ ゲーム履歴の読み込みに失敗しました。</div>';
-        }
-    }
-    
-    // ゲームギャラリーを表示
-    displayGameGallery(games) {
-        const galleryContent = document.getElementById('gallery-content');
-        
-        const galleryGrid = document.createElement('div');
-        galleryGrid.className = 'gallery-grid';
-        
-        games.forEach(game => {
-            const gameCard = document.createElement('div');
-            gameCard.className = 'game-card';
-            gameCard.onclick = () => this.playGameFile(game);
-            
-            const date = new Date(game.createdAt).toLocaleDateString('ja-JP');
-            const time = new Date(game.createdAt).toLocaleTimeString('ja-JP', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            
-            const fileSizeKB = Math.round(game.fileSize / 1024);
-            
-            gameCard.innerHTML = `
-                <div class="game-card-header">
-                    <h3 class="game-card-title">🎮 ${game.prompt.substring(0, 30)}${game.prompt.length > 30 ? '...' : ''}</h3>
-                    <div class="game-card-date">${date} ${time}</div>
-                </div>
-                <div class="game-card-meta">
-                    <div class="game-card-participant">👤 ${game.participant} | 📁 ${game.fileName} (${fileSizeKB}KB)</div>
-                </div>
-                <div class="game-card-prompt">${game.prompt}</div>
-            `;
-            
-            galleryGrid.appendChild(gameCard);
-        });
-        
-        galleryContent.innerHTML = '';
-        galleryContent.appendChild(galleryGrid);
-    }
-    
-    // ゲームギャラリーを隠す
-    showGameGallery() {
-        const gallerySection = document.getElementById('game-gallery-section');
-        gallerySection.style.display = 'block';
-
-        // ギャラリーを表示したら自動的にゲームを読み込む
-        this.loadGameGallery();
-    }
-
-    hideGameGallery() {
-        const gallerySection = document.getElementById('game-gallery-section');
-        const loadBtn = document.getElementById('load-gallery');
-        const hideBtn = document.getElementById('hide-gallery');
-
-        gallerySection.style.display = 'none';
-        loadBtn.style.display = 'inline-block';
-        hideBtn.style.display = 'none';
-    }
-    
-    // 過去のゲームをプレイ（HTMLファイル版）
-    playGameFile(game) {
-        // 新しいウィンドウでHTMLファイルを開く
-        const gameWindow = window.open(game.url, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-        if (gameWindow) {
-            gameWindow.document.title = `${game.prompt}`;
-        }
     }
     
     showNotification(message, type = 'info') {

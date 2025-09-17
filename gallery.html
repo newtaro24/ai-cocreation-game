@@ -340,6 +340,51 @@
                 font-size: 2em;
             }
         }
+
+        /* プロンプト履歴表示用スタイル */
+        .prompt-history-section {
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 15px 0;
+        }
+
+        .history-title {
+            margin: 0 0 8px 0;
+            font-size: 0.9em;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .prompt-history-list {
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .prompt-history-item {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 4px;
+            font-size: 0.8em;
+            line-height: 1.4;
+        }
+
+        .prompt-step {
+            color: #6c757d;
+            font-weight: 600;
+            min-width: 20px;
+        }
+
+        .prompt-participant {
+            color: #495057;
+            font-weight: 500;
+            min-width: 60px;
+        }
+
+        .prompt-text {
+            color: #666;
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -399,7 +444,7 @@
     </div>
 
     <script>
-        const API_BASE_URL = `http://localhost:${window.location.port || '3000'}`;
+        const API_BASE_URL = `${window.location.protocol}//${window.location.host}`;
 
         // ページ読み込み時に実行
         document.addEventListener('DOMContentLoaded', function() {
@@ -474,20 +519,35 @@
             });
             const fileSizeKB = Math.round(game.fileSize / 1024);
 
+            // プロンプト履歴の表示を作成
+            const promptHistoryHtml = game.promptHistory && game.promptHistory.length > 0
+                ? game.promptHistory.map((p, index) => `
+                    <div class="prompt-history-item">
+                        <span class="prompt-step">${index + 1}.</span>
+                        <span class="prompt-participant">${p.participant}:</span>
+                        <span class="prompt-text">${truncateText(p.prompt, 60)}</span>
+                    </div>
+                  `).join('')
+                : `<div class="prompt-history-item">
+                    <span class="prompt-step">1.</span>
+                    <span class="prompt-participant">${game.participant}:</span>
+                    <span class="prompt-text">${truncateText(game.prompt, 60)}</span>
+                   </div>`;
+
             card.innerHTML = `
                 <div class="game-header">
-                    <div class="game-title">🎮 ${truncateText(game.prompt, 40)}</div>
+                    <div class="game-title">🎮 ${truncateText(game.firstPrompt, 40)}</div>
                     <div class="game-date">${date}<br>${time}</div>
                 </div>
-                
+
                 <div class="game-meta">
                     <div class="meta-row">
-                        <span class="meta-label">👤 作成者:</span>
+                        <span class="meta-label">👤 最終作成者:</span>
                         <span class="meta-value">${game.participant}</span>
                     </div>
                     <div class="meta-row">
                         <span class="meta-label">🎯 テーマ:</span>
-                        <span class="meta-value">${truncateText(game.sessionTheme, 30)}</span>
+                        <span class="meta-value">5秒で遊べるミニゲーム</span>
                     </div>
                     <div class="meta-row">
                         <span class="meta-label">📁 ファイル:</span>
@@ -495,13 +555,16 @@
                     </div>
                 </div>
 
-                <div class="game-prompt">
-                    💬 "${game.prompt}"
+                <div class="prompt-history-section">
+                    <h4 class="history-title">📝 プロンプト履歴</h4>
+                    <div class="prompt-history-list">
+                        ${promptHistoryHtml}
+                    </div>
                 </div>
 
                 <div class="game-actions">
                     <button class="game-btn secondary" onclick="copyGameUrl('${game.url}')">📋 URL</button>
-                    <button class="game-btn" onclick="openGameModal('${game.prompt}', '${game.url}')">🎮 プレイ</button>
+                    <button class="game-btn" onclick="openGameModal('${game.firstPrompt}', '${game.url}')">🎮 プレイ</button>
                 </div>
             `;
 

@@ -9,105 +9,85 @@
 <body>
     <div class="container">
         <header>
-            <h1>🤖 AIゲーム生成チャレンジ 🎮</h1>
-            <p class="subtitle">みんなでAIと協力してゲームを作ろう！</p>
+            <h1>🤖 AIゲーム生成チャレンジ</h1>
+            <p class="subtitle">プロンプトを駆使してAIと共創しゲームを作ろう！</p>
         </header>
 
-        <div class="session-manager" id="session-manager">
-            <h2>セッション管理</h2>
-            <div class="session-controls">
-                <div class="session-selector">
-                    <label for="session-select">現在のセッション:</label>
-                    <select id="session-select" class="session-select">
-                        <option value="">新しいセッション</option>
-                    </select>
-                </div>
-                <div class="session-buttons">
-                    <button id="new-session" class="btn btn-primary">新規作成</button>
-                    <button id="load-session" class="btn btn-secondary">読み込み</button>
-                    <button id="delete-session" class="btn btn-danger" style="display: none;">削除</button>
-                </div>
-            </div>
-            <div id="session-info" class="session-info" style="display: none;">
-                <p><strong>セッション名:</strong> <span id="session-name"></span></p>
-                <p><strong>作成日時:</strong> <span id="session-created"></span></p>
-                <p><strong>参加者数:</strong> <span id="session-participants"></span>人</p>
-                <p><strong>ゲーム数:</strong> <span id="session-games"></span>個</p>
-            </div>
-        </div>
 
         <div class="game-info">
-            <div class="theme-section">
-                <h2>今回のお題</h2>
-                <div id="current-theme" class="theme-display">
-                    「5秒で遊べるミニゲーム」を作ろう！
-                </div>
-            </div>
-            
             <div class="timer-section">
                 <div class="timer" id="timer">
                     <span class="timer-label">残り時間</span>
                     <span class="timer-display">05:00</span>
                 </div>
-                <button id="start-game" class="btn btn-primary">チャレンジ開始</button>
-                <button id="stop-game" class="btn btn-danger" style="display: none;">チャレンジ中断</button>
-                <button id="complete-game" class="btn btn-success" style="display: none;">今すぐ完了</button>
+                <div class="player-info-center">
+                    <span class="player-label">プレイヤー</span>
+                    <span id="current-player" class="player-name">待機中...</span>
+                </div>
+                <div class="game-actions">
+                    <button id="start-game" class="btn btn-primary">チャレンジ開始</button>
+                    <button id="stop-game" class="btn btn-danger" style="display: none;">チャレンジ中断</button>
+                    <button id="complete-game" class="btn btn-success" style="display: none;">今すぐ完了</button>
+                    <button id="view-gallery" class="btn btn-gallery">🎮 過去のゲームを見る</button>
+                </div>
             </div>
         </div>
 
-        <div class="main-container">
-            <div class="control-panel">
-                <h3>ゲーム開発チーム</h3>
-                <div class="participants-info">
-                    参加者数: <span id="participant-count">0</span>人 | 
-                    現在: <span id="current-player">待機中...</span>
+        <!-- お題表示エリア -->
+        <div class="theme-container" id="theme-container" style="display: none;">
+            <div class="theme-card">
+                <h2 class="theme-title">🎯 今回のお題</h2>
+                <div id="current-theme" class="theme-display">
+                    「5秒で遊べるミニゲーム」を作ろう！
                 </div>
-                
-                <div class="prompt-section">
-                    <textarea 
-                        id="prompt-input" 
-                        class="prompt-input"
-                        placeholder="具体的な指示を入力（例：「赤いボタンを追加」「音を鳴らす」「スピードを上げる」）"
-                        rows="3"
-                    ></textarea>
-                    <div class="input-controls">
-                        <button id="submit-prompt" class="btn btn-submit">送信</button>
+            </div>
+        </div>
+
+        <!-- AIプロンプト入力エリア -->
+        <div class="prompt-container">
+            <h2>🤖 AIへの指示入力</h2>
+            <div class="prompt-section">
+                <textarea
+                    id="prompt-input"
+                    class="prompt-input"
+                    placeholder="AIに具体的な指示を入力してください。
+
+例:
+- 「赤いボタンを追加して、クリックすると音が鳴るようにして」
+- 「ゲームのスピードを上げて、難易度を高くして」
+- 「スコア表示とランキング機能を追加して」"
+                    rows="6"
+                ></textarea>
+                <div class="input-controls">
+                    <div class="prompt-tips">
+                        <span>⌘ + Enter で送信</span>
                     </div>
-                </div>
-
-                <div class="prompt-history">
-                    <details>
-                        <summary>プロンプト履歴</summary>
-                        <div id="history" class="history-list">
-                            <p class="empty-message">まだプロンプトがありません</p>
-                        </div>
-                    </details>
-                </div>
-            </div>
-
-            <div class="result-section">
-                <h3>生成されたゲーム</h3>
-                <div id="result" class="result-display">
-                    <div class="waiting-message">
-                        <div class="waiting-icon">🎮</div>
-                        <p>プロンプトを入力してAIにゲーム作成を依頼しましょう</p>
-                    </div>
+                    <button id="submit-prompt" class="btn btn-submit">🚀 AIに送信</button>
                 </div>
             </div>
         </div>
 
-        <div class="showcase-section" id="showcase-section" style="display: none;">
-            <h2>🏆 完成したゲームを発表！</h2>
-            <p>制作時間終了！みんなで作ったゲームをプレイしてみましょう！</p>
-            <div class="final-result" id="final-result"></div>
-            <div class="creation-process">
-                <h3>制作過程</h3>
-                <div id="creation-recipe"></div>
-            </div>
-            <div class="controls">
-                <button class="btn btn-primary" id="new-challenge">新しいチャレンジ</button>
+        <!-- ゲーム表示エリア -->
+        <div class="game-display-container">
+            <h2>🎮 生成されたゲーム</h2>
+            <div id="result" class="result-display">
+                <div class="waiting-message">
+                    <div class="waiting-icon">🎮</div>
+                    <p>プロンプトを入力してAIにゲーム作成を依頼しましょう！</p>
+                </div>
             </div>
         </div>
+
+        <!-- プロンプト履歴 -->
+        <div class="history-container">
+            <details>
+                <summary>プロンプト履歴</summary>
+                <div id="history" class="history-list">
+                    <p class="empty-message">まだプロンプトがありません</p>
+                </div>
+            </details>
+        </div>
+
 
         <!-- ゲームギャラリーセクション -->
         <div class="game-gallery-section" id="game-gallery-section" style="display: none;">
@@ -120,11 +100,6 @@
             <div id="gallery-content"></div>
         </div>
 
-        <div class="stats-section">
-            <span>プロンプト: <strong id="total-prompts">0</strong></span>
-            <span>参加者: <strong id="total-participants">0</strong></span>
-            <span>ゲーム: <strong id="games-created">0</strong></span>
-        </div>
     </div>
 
     <!-- チャレンジ開始モーダル -->
@@ -134,9 +109,11 @@
                 <h3>チャレンジを開始</h3>
             </div>
             <div class="modal-body">
-                <label for="participants-input">参加者の名前をカンマ区切りで入力:</label>
-                <textarea id="participants-input" class="modal-input" placeholder="例: 田中, 佐藤, 鈴木" rows="3" maxlength="200"></textarea>
-                <div class="modal-hint">1人でも複数人でも参加できます</div>
+                <label for="participants-input">あなたのニックネームを入力:</label>
+                <input type="text" id="participants-input" class="modal-input" placeholder="例: commune taro" maxlength="50">
+                <div class="modal-hint">スコアがランキングに反映された際に表示されます</div>
+                <div class="modal-hint">個人情報や公序良俗に反する用語が含まれるニックネームはなるべく避けてください</div>
+                <div class="modal-hint">ランキングの結果等を、個人を特定できない状態にて当社広報SNSアカウントにより投稿する可能性があります</div>
                 <div class="modal-error" id="start-error" style="display: none;"></div>
             </div>
             <div class="modal-footer">
