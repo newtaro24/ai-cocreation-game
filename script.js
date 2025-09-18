@@ -256,7 +256,7 @@ class AIGameChallenge {
         // 詳細スコア表示
         const detailScoreHtml = Object.entries(scoreData.detailScores).map(([key, score]) => {
             const labels = {
-                requiredFeatures: '必須機能実装度',
+                requiredFeatures: '機能要件実装度',
                 completeness: 'ゲーム完成度',
                 uiUx: 'UI/UX品質',
                 playability: 'プレイアビリティ',
@@ -268,7 +268,7 @@ class AIGameChallenge {
                     <div class="score-bar">
                         <div class="score-fill" style="width: ${score * 5}%"></div>
                     </div>
-                    <span class="score-value">${score}/20</span>
+                    <span class="score-value">${score}/200</span>
                 </div>
             `;
         }).join('');
@@ -375,7 +375,7 @@ class AIGameChallenge {
             <div class="theme-title">${this.currentThemeObj.title}</div>
             <div class="theme-description">${this.currentThemeObj.description}</div>
             <div class="theme-requirements">
-                <strong>必須機能:</strong>
+                <strong>機能要件:</strong>
                 <ul>
                     ${this.currentThemeObj.requirements.map(req => `<li>${req}</li>`).join('')}
                 </ul>

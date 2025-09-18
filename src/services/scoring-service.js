@@ -116,7 +116,7 @@ class ScoringService {
 【お題】
 タイトル: ${themeInfo.title}
 説明: ${themeInfo.description}
-必須機能: ${themeInfo.requirements.join(', ')}
+機能要件: ${themeInfo.requirements.join(', ')}
 
 【プロンプト履歴】
 ${historyText}
@@ -125,7 +125,7 @@ ${historyText}
 ${htmlContent}
 
 【評価基準】（各200点満点、総合1000点満点）
-1. 必須機能実装度: 指定された必須機能がすべて実装されているか（0-200点）
+1. 機能要件実装度: 指定された機能要件がすべて実装されているか（0-200点）
 2. ゲーム完成度: ゲームとして正常に動作し、完成しているか（0-200点）
 3. UI/UX品質: 見た目の美しさと操作性の良さ（0-200点）
 4. プレイアビリティ: 実際に遊べて面白いか（0-200点）
