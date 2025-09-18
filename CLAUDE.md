@@ -6,16 +6,18 @@
 
 ### 基本コンセプト
 - 複数参加者が順番にプロンプトを入力
-- Google Vertex AI (Gemini 2.5 Flash) がゲームを生成・改良
+- Google Vertex AI がゲームを生成・改良
 - 5分間の制限時間内でミニゲームを完成させる
 - リアルタイムで結果を表示し、過去のゲーム履歴も閲覧可能
+- スコアリング機能とランキング表示
+- ルール説明とギャラリー機能
 
 ## 🏗️ アーキテクチャ
 
 ### 技術スタック
 - **Backend**: Node.js + Express
 - **Frontend**: Vanilla HTML/CSS/JavaScript (シングルページ)
-- **AI**: Google Cloud Vertex AI (Gemini 2.5 Flash)
+- **AI**: Google Cloud Vertex AI
 - **Data**: ファイルベースストレージ (タイムスタンプフォルダ構造)
 
 ### ファイル構造
@@ -26,33 +28,38 @@
 │   │   └── ai-config.js    # AI設定
 │   ├── services/
 │   │   ├── ai-service.js   # AI生成処理
-│   │   ├── session-service.js # セッション管理
-│   │   └── file-service.js # ファイル管理
+│   │   ├── file-service.js # ファイル管理
+│   │   └── scoring-service.js # スコアリング
 │   ├── routes/
 │   │   ├── game-routes.js  # ゲーム関連API
-│   │   ├── session-routes.js # セッション関連API
+│   │   ├── scoring-routes.js # スコアリングAPI
 │   │   └── stats-routes.js # 統計関連API
 │   └── utils/
 │       └── validators.js   # バリデーション
-├── index.html              # フロントエンド
-├── script.js               # フロントエンドロジック (757行)
+├── index.html              # メインページ
+├── gallery.html            # ギャラリーページ
+├── ranking.html            # ランキングページ
+├── rules.html              # ルール説明ページ
+├── script.js               # フロントエンドロジック
 ├── styles.css              # スタイリング
 └── data/                   # 永続化データ (gitignore済み)
-    └── sessions/
-        └── session_TIMESTAMP_ID/
-            ├── session.json
-            ├── participants.json
-            └── game_XXX_participant.html
+    ├── games/              # ゲームHTML保存
+    │   └── game_TIMESTAMP_PARTICIPANT.html  # セッション情報付き
+    ├── scores/             # スコアデータ
+    │   ├── score_game_TIMESTAMP_PARTICIPANT.json
+    │   └── rankings.json
+    └── sessions/           # セッション管理（NEW）
+        └── session_SESSIONID/
+            ├── session.json      # セッション情報
+            ├── prompt_history.json # プロンプト履歴
+            └── final_game.html   # 最終成果物
 ```
 
 ## 🚀 起動コマンド
 
 ```bash
-# 新しいリファクタリング版
+# 本番
 npm start
-
-# レガシー版（必要時）
-npm run start:legacy
 
 # 開発モード
 npm run dev
@@ -60,22 +67,35 @@ npm run dev
 
 ## 📡 API エンドポイント
 
-### セッション管理
-- `POST /api/sessions` - セッション作成
-- `GET /api/sessions` - 全セッション取得
-- `GET /api/sessions/:id` - 個別セッション取得
-- `PUT /api/sessions/:id` - セッション更新
-- `DELETE /api/sessions/:id` - セッション削除
+### セッション管理（NEW）
+- `POST /api/sessions/create` - セッション作成
+- `GET /api/sessions/:sessionId` - セッション情報取得
+- `GET /api/sessions` - 全セッション一覧
+- `POST /api/sessions/:sessionId/prompts` - プロンプト追加
+- `GET /api/sessions/:sessionId/prompts` - プロンプト履歴取得
+- `POST /api/sessions/:sessionId/complete` - セッション完了
 
 ### ゲーム関連
-- `POST /api/generate-game` - AIゲーム生成
-- `POST /api/sessions/:id/games` - ゲームファイル保存
+- `POST /api/games/generate` - AIゲーム生成
+- `POST /api/games/:sessionId/save` - ゲームファイル保存
 - `GET /api/games/all` - 全ゲーム取得（ギャラリー用）
+- `GET /api/games/:sessionId/:fileName` - 個別ゲーム取得
+- `DELETE /api/games/:sessionId/:fileName` - ゲーム削除
+
+### スコアリング
+- `POST /api/scoring/games/:gameId/score` - ゲームスコア投稿
+- `GET /api/scoring/games/:gameId/score` - ゲームスコア取得
+- `GET /api/scoring/rankings` - ランキング取得
+- `GET /api/scoring/scores/stats` - スコア統計
 
 ### 統計・監視
 - `GET /api/stats` - 統計情報
 - `GET /api/stats/health` - ヘルスチェック
 - `GET /api/stats/system` - システム情報
+
+### レガシー（互換性維持）
+- `POST /api/generate-game` - AIゲーム生成（旧API）
+- `POST /api/games/save` - ゲーム保存（旧API、セッション情報対応済み）
 
 ## 🔧 設定要件
 
@@ -99,24 +119,14 @@ PORT=3000
 2. **ゲーム制作**: 順番にプロンプト入力→AI生成→改良
 3. **制限時間**: 5分カウントダウン
 4. **完成発表**: 最終ゲーム表示
-5. **履歴閲覧**: 過去ゲームのギャラリー機能
+5. **評価・共有**: スコア投稿とランキング登録
+6. **履歴閲覧**: ギャラリーでの過去作品一覧とランキング確認
 
-## 🛠️ 最近の改善履歴
-
-### 2025-09-13 大規模リファクタリング
-- 単一ファイル(682行)から機能別モジュール化
-- サービス層分離によるSoC実現
-- 永続化層のGitignore対応
-- バリデーション強化
-- エラーハンドリング改善
-- レガシーAPI互換性維持
-
-### 主要課題解決
-- ✅ AI生成エラーの安定化
-- ✅ データ永続化の実装
-- ✅ 参加者UX向上（統合フロー）
-- ✅ セッション管理の完全自動化
-- ✅ ギャラリー機能追加
+### ページ構成
+- **index.html**: メインゲーム画面（プロンプト入力・AI生成）
+- **gallery.html**: 過去ゲーム一覧表示
+- **ranking.html**: スコアランキング表示
+- **rules.html**: ゲームルール説明
 
 ## 💡 運用ノート
 
@@ -134,17 +144,3 @@ PORT=3000
 - CORS: ローカル開発用に緩和
 - 入力検証: 専用validator実装
 - API認証: なし（展示ブース用）
-
-## 🎯 今後の拡張候補
-
-- [ ] WebSocket実装（リアルタイム同期）
-- [ ] 参加者ランキング機能
-- [ ] ゲーム評価システム
-- [ ] マルチテーマ対応
-- [ ] モバイル最適化
-
----
-
-**Last Updated**: 2025-09-13
-**Status**: ✅ Production Ready
-**Version**: 2.0 (Refactored)
