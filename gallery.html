@@ -621,15 +621,11 @@
 
             card.innerHTML = `
                 <div class="game-header">
-                    <div class="game-title">🎮 ${truncateText(game.firstPrompt, 40)}</div>
+                    <div class="game-title">🎮 ${game.participant}</div>
                     <div class="game-date">${date}<br>${time}</div>
                 </div>
 
                 <div class="game-meta">
-                    <div class="meta-row">
-                        <span class="meta-label">👤 最終作成者:</span>
-                        <span class="meta-value">${game.participant}</span>
-                    </div>
                     <div class="meta-row">
                         <span class="meta-label">🎯 テーマ:</span>
                         <span class="meta-value">5秒で遊べるミニゲーム</span>
