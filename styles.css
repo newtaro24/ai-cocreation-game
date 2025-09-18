@@ -1216,6 +1216,7 @@ footer {
 
 .checkmark {
     position: relative;
+    top: 4px;
     height: 18px;
     width: 18px;
     min-width: 18px;
