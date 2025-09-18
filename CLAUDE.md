@@ -82,7 +82,7 @@ npm run dev
 ### 環境変数 (.env)
 ```env
 PROJECT_ID=your-gcp-project-id
-GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account-key.json
+GOOGLE_APPLICATION_CREDENTIALS=service-account-key.json
 LOCATION=asia-northeast1
 MODEL_NAME=gemini-2.5-flash
 PORT=3000
@@ -90,8 +90,8 @@ PORT=3000
 
 ### Google Cloud設定
 - Vertex AI API有効化
-- サービスアカウントキー配置
-- 適切な権限設定
+- サービスアカウント作成（`Vertex AI ユーザー` 権限必要）
+- `service-account-key.json` をプロジェクトルートに配置
 
 ## 🎮 ユーザーフロー
 
