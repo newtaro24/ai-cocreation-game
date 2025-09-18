@@ -349,6 +349,7 @@
             border-radius: 8px;
             padding: 12px;
             margin: 15px 0;
+            border-left: 4px solid #667eea;
         }
 
         .history-title {
@@ -386,6 +387,15 @@
         .prompt-text {
             color: #666;
             flex: 1;
+        }
+
+        .prompt-time {
+            color: #999;
+            font-size: 0.7em;
+            margin-left: 8px;
+            font-style: italic;
+            min-width: 50px;
+            text-align: right;
         }
 
         /* スコア表示スタイル */
@@ -610,13 +620,14 @@
                     <div class="prompt-history-item">
                         <span class="prompt-step">${index + 1}.</span>
                         <span class="prompt-participant">${p.participant}:</span>
-                        <span class="prompt-text">${truncateText(p.prompt, 60)}</span>
+                        <span class="prompt-text" title="${p.prompt}">${truncateText(p.prompt, 80)}</span>
+                        ${p.timestamp ? `<span class="prompt-time">${p.timestamp}</span>` : ''}
                     </div>
                   `).join('')
                 : `<div class="prompt-history-item">
                     <span class="prompt-step">1.</span>
                     <span class="prompt-participant">${game.participant}:</span>
-                    <span class="prompt-text">${truncateText(game.prompt, 60)}</span>
+                    <span class="prompt-text" title="${game.prompt}">${truncateText(game.prompt, 80)}</span>
                    </div>`;
 
             card.innerHTML = `
@@ -648,7 +659,7 @@
                 </div>
 
                 <div class="prompt-history-section">
-                    <h4 class="history-title">📝 プロンプト履歴</h4>
+                    <h4 class="history-title">📝 プロンプト履歴 ${game.promptHistory && game.promptHistory.length > 1 ? `(${game.promptHistory.length}回のやり取り)` : '(1回のやり取り)'}</h4>
                     <div class="prompt-history-list">
                         ${promptHistoryHtml}
                     </div>
