@@ -46,6 +46,16 @@
                 <div id="current-theme" class="theme-display">
                     「5秒で遊べるミニゲーム」を作ろう！
                 </div>
+                <div class="scoring-criteria">
+                    <h3>📊 採点基準（各200点・合計1000点）</h3>
+                    <div class="criteria-grid">
+                        <div class="criteria-item"><strong>機能要件実装度</strong>：お題の要求機能を正確に実装</div>
+                        <div class="criteria-item"><strong>ゲーム完成度</strong>：正常動作・完成品質</div>
+                        <div class="criteria-item"><strong>UI/UX品質</strong>：見た目・操作性</div>
+                        <div class="criteria-item"><strong>プレイアビリティ</strong>：面白さ・遊びやすさ</div>
+                        <div class="criteria-item"><strong>創造性</strong>：独創的アイデア・工夫</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -75,7 +85,10 @@
 
         <!-- ゲーム表示エリア -->
         <div class="game-display-container">
-            <h2>🎮 生成されたゲーム</h2>
+            <div class="game-header">
+                <h2>🎮 生成されたゲーム</h2>
+                <button id="open-game-modal" class="btn btn-modal" style="display: none;">🔍 拡大表示</button>
+            </div>
             <div id="result" class="result-display">
                 <div class="waiting-message">
                     <div class="waiting-icon">🎮</div>
@@ -139,6 +152,21 @@
             <div class="modal-footer">
                 <button id="start-cancel" class="btn btn-secondary">キャンセル</button>
                 <button id="start-confirm" class="btn btn-primary">開始</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ゲーム拡大表示モーダル -->
+    <div id="game-modal" class="modal modal-large" style="display: none;">
+        <div class="modal-content modal-content-large">
+            <div class="modal-header">
+                <h3>🎮 ゲーム - 拡大表示</h3>
+                <button id="close-game-modal" class="close-button">&times;</button>
+            </div>
+            <div class="modal-body modal-body-game">
+                <div id="game-modal-content" class="game-modal-display">
+                    <!-- ゲームコンテンツがここに表示される -->
+                </div>
             </div>
         </div>
     </div>

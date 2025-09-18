@@ -62,6 +62,10 @@ class AIGameChallenge {
                 this.submitPrompt();
             }
         });
+
+        // ゲーム拡大表示ボタンのイベントリスナー
+        document.getElementById('open-game-modal').addEventListener('click', () => this.openGameModal());
+        document.getElementById('close-game-modal').addEventListener('click', () => this.closeGameModal());
     }
     
     showStartModal() {
@@ -510,7 +514,10 @@ class AIGameChallenge {
                 
                 resultContainer.innerHTML = '';
                 resultContainer.appendChild(iframe);
-                
+
+                // 拡大表示ボタンを表示
+                document.getElementById('open-game-modal').style.display = 'inline-block';
+
                 this.gameHistory.push({
                     prompt: prompt,
                     html: data.html,
@@ -706,6 +713,49 @@ class AIGameChallenge {
             notification.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => notification.remove(), 300);
         }, 4000);
+    }
+
+    // ゲーム拡大表示モーダルを開く
+    openGameModal() {
+        const resultDiv = document.getElementById('result');
+        const gameContent = resultDiv.innerHTML;
+
+        if (!gameContent.includes('<iframe') && !gameContent.includes('<div class="game-container"')) {
+            // ゲームがまだ生成されていない場合は何もしない
+            return;
+        }
+
+        const modal = document.getElementById('game-modal');
+        const modalContent = document.getElementById('game-modal-content');
+
+        // ゲームコンテンツをモーダルにコピー
+        modalContent.innerHTML = gameContent;
+        modal.style.display = 'flex';
+
+        // Escape キーでモーダルを閉じる
+        const handleKeydown = (e) => {
+            if (e.key === 'Escape') {
+                this.closeGameModal();
+                document.removeEventListener('keydown', handleKeydown);
+            }
+        };
+        document.addEventListener('keydown', handleKeydown);
+
+        // モーダル外をクリックして閉じる
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeGameModal();
+            }
+        });
+    }
+
+    // ゲーム拡大表示モーダルを閉じる
+    closeGameModal() {
+        const modal = document.getElementById('game-modal');
+        modal.style.display = 'none';
+
+        // モーダル内のコンテンツをクリア
+        document.getElementById('game-modal-content').innerHTML = '';
     }
 }
 const style = document.createElement('style');
