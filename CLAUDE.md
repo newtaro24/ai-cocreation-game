@@ -103,8 +103,8 @@ npm run dev
 ```env
 PROJECT_ID=your-gcp-project-id
 GOOGLE_APPLICATION_CREDENTIALS=service-account-key.json
-LOCATION=asia-northeast1
-MODEL_NAME=gemini-2.5-flash
+LOCATION=us-central1
+MODEL_NAME=gemini-2.5-pro
 PORT=3000
 ```
 

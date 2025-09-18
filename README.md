@@ -40,10 +40,10 @@ npm i
 # Vertex AI設定
 GOOGLE_APPLICATION_CREDENTIALS=service-account-key.json
 PROJECT_ID=XXXX
-LOCATION=asia-northeast1
+LOCATION=us-central1
 
 # 使いたいモデル
-MODEL_NAME=gemini-2.5-flash
+MODEL_NAME=gemini-2.5-pro
 
 # サーバー設定
 PORT=3000

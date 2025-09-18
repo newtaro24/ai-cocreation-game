@@ -259,8 +259,16 @@
 
             async loadStats() {
                 try {
+                    console.log('Loading stats from:', `${this.apiBaseUrl}/api/scores/stats`);
                     const response = await fetch(`${this.apiBaseUrl}/api/scores/stats`);
+                    console.log('Stats response status:', response.status);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
                     const data = await response.json();
+                    console.log('Stats data:', data);
 
                     if (data.success) {
                         document.getElementById('total-games').textContent = data.stats.totalGames;
@@ -274,17 +282,28 @@
 
             async loadRankings() {
                 try {
+                    console.log('Loading rankings from:', `${this.apiBaseUrl}/api/rankings`);
                     const response = await fetch(`${this.apiBaseUrl}/api/rankings`);
+
+                    console.log('Response status:', response.status);
+                    console.log('Response ok:', response.ok);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
                     const data = await response.json();
+                    console.log('Rankings data:', data);
 
                     if (data.success && data.rankings.length > 0) {
                         this.renderRankings(data.rankings);
                     } else {
+                        console.log('No rankings found or unsuccessful response');
                         this.showEmptyRanking();
                     }
                 } catch (error) {
                     console.error('Failed to load rankings:', error);
-                    this.showError('ランキング情報の読み込みに失敗しました');
+                    this.showError(`ランキング情報の読み込みに失敗しました: ${error.message}`);
                 }
             }
 
@@ -308,8 +327,8 @@
                                 ${medal}
                             </div>
                             <div class="ranking-info">
-                                <div class="ranking-player">${this.escapeHtml(ranking.participant)}</div>
-                                <div class="ranking-theme">${this.escapeHtml(ranking.theme)}</div>
+                                <div class="ranking-player">${this.escapeHtml(ranking.participant || '名無し')}</div>
+                                <div class="ranking-theme">${this.escapeHtml(ranking.theme || 'テーマなし')}</div>
                             </div>
                             <div class="ranking-score">
                                 <div class="score-display">${ranking.totalScore}</div>
@@ -350,7 +369,8 @@
             }
 
             escapeHtml(unsafe) {
-                return unsafe
+                if (!unsafe) return '';
+                return String(unsafe)
                     .replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;")

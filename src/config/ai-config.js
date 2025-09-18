@@ -3,7 +3,7 @@ require('dotenv').config();
 const AI_CONFIG = {
     projectId: process.env.PROJECT_ID,
     location: process.env.LOCATION || 'us-central1',
-    modelName: process.env.MODEL_NAME || 'gemini-1.5-flash',
+    modelName: process.env.MODEL_NAME || 'gemini-2.5-pro',
     generationConfig: {
         maxOutputTokens: 8192,
         temperature: 0.7,

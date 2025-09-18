@@ -5,8 +5,8 @@ const path = require('path');
 class ScoringService {
     constructor() {
         this.projectId = process.env.PROJECT_ID;
-        this.location = process.env.LOCATION || 'asia-northeast1';
-        this.modelName = process.env.MODEL_NAME || 'gemini-2.5-flash';
+        this.location = process.env.LOCATION || 'us-central1';
+        this.modelName = process.env.MODEL_NAME || 'gemini-2.5-pro';
 
         this.vertexAI = new VertexAI({
             project: this.projectId,
