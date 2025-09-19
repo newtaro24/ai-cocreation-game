@@ -246,7 +246,8 @@ ${htmlContent}
                 theme: score.theme,
                 totalScore: score.totalScore,
                 createdAt: score.createdAt,
-                scoredAt: score.scoredAt
+                scoredAt: score.scoredAt,
+                promptHistory: score.promptHistory || []
             }));
 
         const rankingsPath = path.join(this.scoresDir, 'rankings.json');

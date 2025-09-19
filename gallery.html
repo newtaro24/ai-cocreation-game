@@ -591,7 +591,10 @@
                         totalScore: matchingRanking.totalScore,
                         rank: matchingRanking.rank,
                         participant: matchingRanking.participant
-                    } : null
+                    } : null,
+                    // スコアファイルにプロンプト履歴がある場合はそれを使用
+                    promptHistory: matchingRanking && matchingRanking.promptHistory ?
+                        matchingRanking.promptHistory : game.promptHistory
                 };
             });
 
